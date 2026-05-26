@@ -1,0 +1,224 @@
+.page {
+    min-height: 100vh;
+    padding: 16px;
+    color: #FFF;
+}
+
+.tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    height: 36px;
+    padding: 3px;
+    margin-bottom: 12px;
+    border-radius: 7px;
+    background: rgba(5, 24, 48, 0.9);
+}
+
+.tabs > button {
+    color: #9AA5BD;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+}
+
+.tabs > .active_tab {
+    color: #FFF;
+    background: linear-gradient(135deg, #6536E7 0%, #006EFF 100%);
+}
+
+.filters {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 10px;
+    overflow-x: auto;
+}
+
+.filters > button {
+    height: 26px;
+    flex-shrink: 0;
+    padding: 0 10px;
+    color: #7F8BA8;
+    font-size: 11px;
+    border: 1px solid rgba(142, 190, 255, 0.14);
+    border-radius: 999px;
+    background: rgba(5, 28, 53, 0.56);
+}
+
+.filters > .active_filter {
+    color: #8FB9FF;
+    border-color: rgba(22, 134, 255, 0.36);
+    background: rgba(22, 134, 255, 0.12);
+}
+
+.order_list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.empty,
+.order_card {
+    border: 1px solid rgba(19, 147, 248, 0.18);
+    border-radius: 8px;
+    background: rgba(2, 13, 32, 0.78);
+}
+
+.empty {
+    min-height: 112px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7F8BA8;
+    font-size: 12px;
+}
+
+.order_card {
+    padding: 10px;
+}
+
+.order_top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 7px;
+}
+
+.order_top > span {
+    color: #F1F2F4;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.order_top > em {
+    padding: 3px 7px;
+    font-size: 10px;
+    font-style: normal;
+    border-radius: 999px;
+}
+
+.order_top > div {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.order_top > div > em {
+    padding: 3px 7px;
+    font-size: 10px;
+    font-style: normal;
+    border-radius: 999px;
+}
+
+.cancel_btn {
+    height: 22px;
+    padding: 0 8px;
+    color: #F7C66B;
+    font-size: 10px;
+    border: 1px solid rgba(247, 198, 107, 0.24);
+    border-radius: 999px;
+    background: rgba(247, 198, 107, 0.1);
+}
+
+.cancel_btn:disabled {
+    opacity: 0.58;
+}
+
+.status_open {
+    color: #58DFA6;
+    background: rgba(88, 223, 166, 0.12);
+}
+
+.status_filled {
+    color: #8FB9FF;
+    background: rgba(22, 134, 255, 0.12);
+}
+
+.status_cancelled {
+    color: #F7C66B;
+    background: rgba(247, 198, 107, 0.12);
+}
+
+.order_id {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: #7F8BA8;
+    font-size: 10px;
+    margin-bottom: 9px;
+}
+
+.order_id > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.order_grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.order_grid > div {
+    min-width: 0;
+    padding: 8px;
+    border-radius: 6px;
+    background: rgba(5, 28, 53, 0.72);
+}
+
+.order_grid span,
+.order_grid strong {
+    display: block;
+}
+
+.order_grid span {
+    color: #7F8BA8;
+    font-size: 10px;
+    margin-bottom: 4px;
+}
+
+.order_grid strong {
+    color: #F1F2F4;
+    font-size: 12px;
+    font-weight: 600;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding-bottom: 76px;
+}
+
+.pagination > button {
+    height: 24px;
+    min-width: 54px;
+    padding: 0 9px;
+    color: #8FB9FF;
+    font-size: 10px;
+    border: 1px solid rgba(22, 134, 255, 0.28);
+    border-radius: 999px;
+    background: rgba(22, 134, 255, 0.08);
+}
+
+.pagination > button:disabled {
+    color: #4E5B73;
+    border-color: rgba(142, 190, 255, 0.12);
+    background: rgba(5, 28, 53, 0.42);
+}
+
+.pagination > span {
+    min-width: 38px;
+    color: #6F7D9B;
+    font-size: 10px;
+    text-align: center;
+}

@@ -1,0 +1,381 @@
+.page {
+    min-height: 100vh;
+    padding: 18px 16px 110px;
+    color: #FFFFFF;
+    background: #00081A;
+}
+
+.profile_card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 0;
+}
+
+.avatar {
+    width: 54px;
+    height: 54px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid rgba(142, 190, 255, 0.34);
+    background: radial-gradient(circle at 30% 24%, rgba(88, 223, 166, 0.62), rgba(22, 134, 255, 0.42) 48%, rgba(7, 21, 49, 0.92));
+    box-shadow: 0 10px 24px rgba(0, 8, 26, 0.28);
+    overflow: hidden;
+}
+
+.avatar svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.profile_info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.address_btn {
+    width: fit-content;
+    max-width: 100%;
+    padding: 0;
+    color: #8FB9FF;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+    text-align: left;
+    border: none;
+    background: transparent;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile_badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.profile_badges span {
+    width: fit-content;
+    padding: 3px 8px;
+    color: #F7C66B;
+    font-size: 11px;
+    line-height: 1.3;
+    border: 1px solid rgba(247, 198, 107, 0.22);
+    border-radius: 999px;
+    background: rgba(247, 198, 107, 0.08);
+}
+
+.balance_card,
+.logs_card,
+.menu_card {
+    margin-top: 12px;
+    padding: 0;
+    border: 1px solid rgba(19, 147, 248, 0.18);
+    border-radius: 8px;
+    background: rgba(2, 13, 32, 0.78);
+    overflow: hidden;
+}
+
+.logs_card {
+    padding: 12px;
+}
+
+.logs_head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.logs_head span {
+    color: #F1F2F4;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.logs_head button {
+    color: #8FB9FF;
+    font-size: 11px;
+    border: none;
+    background: transparent;
+}
+
+.log_list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.log_item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 10px;
+    border-radius: 6px;
+    background: rgba(5, 28, 53, 0.72);
+}
+
+.log_item > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.log_item span {
+    color: #F1F2F4;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.log_item em {
+    color: #7F8BA8;
+    font-size: 10px;
+    font-style: normal;
+}
+
+.log_item strong {
+    color: #58DFA6;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.log_state {
+    padding: 18px 0;
+    color: #7F8BA8;
+    font-size: 12px;
+    text-align: center;
+}
+
+.asset_total {
+    padding: 14px 12px 12px;
+}
+
+.asset_total > div {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.asset_total span {
+    display: block;
+    color: #7F8BA8;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.asset_total button {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+.asset_total button img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.asset_total strong {
+    display: block;
+    margin-top: 6px;
+    color: #F1F2F4;
+    font-size: 22px;
+    line-height: 1.2;
+}
+
+.token_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 0 12px 12px;
+}
+
+.token_grid > div {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 6px;
+    background: rgba(5, 28, 53, 0.72);
+}
+
+.token_grid img {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    object-fit: contain;
+}
+
+.token_grid > div > div {
+    min-width: 0;
+}
+
+.token_grid span {
+    display: block;
+    color: #7F8BA8;
+    font-size: 11px;
+    margin-bottom: 6px;
+}
+
+.token_grid strong {
+    display: block;
+    color: #F1F2F4;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.asset_action {
+    padding: 12px;
+    border-top: 1px solid rgba(142, 190, 255, 0.08);
+}
+
+.withdraw_btn {
+    width: 100%;
+    height: 36px;
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #6536E7 0%, #006EFF 100%);
+}
+
+.menu_card {
+    padding: 0;
+}
+
+.menu_card button {
+    width: 100%;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    border: none;
+    border-bottom: 1px solid rgba(142, 190, 255, 0.08);
+    background: transparent;
+}
+
+.menu_card button:last-child {
+    border-bottom: none;
+}
+
+.menu_card span {
+    color: #F1F2F4;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.menu_card em {
+    color: #7F8BA8;
+    font-size: 18px;
+    line-height: 1;
+    font-style: normal;
+}
+
+.logout_btn {
+    width: 100%;
+    height: 38px;
+    margin-top: 16px;
+    color: #F7C66B;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid rgba(247, 198, 107, 0.22);
+    border-radius: 6px;
+    background: rgba(247, 198, 107, 0.08);
+}
+
+.withdraw_form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.withdraw_form label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.withdraw_form label > span {
+    color: #A9B8D6;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.token_tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.token_tabs button {
+    height: 34px;
+    color: #96A5C5;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(142, 190, 255, 0.12);
+    border-radius: 6px;
+    background: rgba(5, 28, 53, 0.72);
+}
+
+.token_tabs .token_tab_active {
+    color: #FFFFFF;
+    border-color: rgba(22, 134, 255, 0.5);
+    background: linear-gradient(135deg, #6536E7 0%, #006EFF 100%);
+}
+
+.withdraw_input {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    border: 1px solid rgba(142, 190, 255, 0.14);
+    border-radius: 6px;
+    background: rgba(5, 28, 53, 0.72);
+}
+
+.withdraw_input input {
+    flex: 1;
+    min-width: 0;
+    color: #F1F2F4;
+    font-size: 13px;
+    border: none;
+    outline: none;
+    background: transparent;
+}
+
+.withdraw_input input::placeholder {
+    color: #5A6886;
+}
+
+.withdraw_input em {
+    color: #7F8BA8;
+    font-size: 11px;
+    font-style: normal;
+}
+
+.withdraw_balance {
+    color: #7F8BA8;
+    font-size: 11px;
+    line-height: 1.5;
+}

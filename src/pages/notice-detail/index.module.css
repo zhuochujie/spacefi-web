@@ -1,0 +1,39 @@
+.page {
+    min-height: 100vh;
+    padding: 16px;
+    background: #00081A;
+}
+
+.article {
+    padding: 16px 14px;
+    background: #071531;
+    border: 1px solid #1E3964;
+    border-radius: 5px;
+}
+
+.article h1 {
+    color: #F1F2F4;
+    font-size: 18px;
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.time {
+    color: #5A6886;
+    font-size: 11px;
+    margin-bottom: 18px;
+}
+
+.content {
+    color: #C4CCE0;
+    font-size: 13px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+}
+
+.status {
+    padding: 40px 0;
+    color: #96A5C5;
+    font-size: 13px;
+    text-align: center;
+}

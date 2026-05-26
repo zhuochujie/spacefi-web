@@ -1,0 +1,107 @@
+.page {
+    min-height: 100vh;
+    padding: 16px 16px 28px;
+    color: #FFFFFF;
+    background: #00081A;
+}
+
+.hero {
+    position: relative;
+    min-height: 188px;
+    display: flex;
+    align-items: flex-end;
+    padding: 18px;
+    border: 1px solid rgba(19, 147, 248, 0.2);
+    border-radius: 8px;
+    background: rgba(2, 13, 32, 0.78);
+    overflow: hidden;
+}
+
+.hero_bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.42;
+}
+
+.hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 8, 26, 0.08) 0%, rgba(0, 8, 26, 0.86) 100%);
+}
+
+.hero_content {
+    position: relative;
+    z-index: 1;
+}
+
+.logo {
+    width: 82px;
+    height: auto;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.hero p {
+    max-width: 260px;
+    margin: 0;
+    color: #A9B8D6;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.intro {
+    margin-top: 12px;
+    padding: 14px;
+    border: 1px solid rgba(19, 147, 248, 0.18);
+    border-radius: 8px;
+    background: rgba(2, 13, 32, 0.78);
+}
+
+.intro h2,
+.feature h3 {
+    margin: 0;
+    color: #F1F2F4;
+    font-size: 15px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+.intro p,
+.feature p {
+    margin: 9px 0 0;
+    color: #96A5C5;
+    font-size: 12px;
+    line-height: 1.75;
+}
+
+.feature_list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid rgba(19, 147, 248, 0.18);
+    border-radius: 8px;
+    background: rgba(2, 13, 32, 0.78);
+}
+
+.feature img {
+    width: 58px;
+    height: 58px;
+    flex-shrink: 0;
+    object-fit: contain;
+}
+
+.feature > div {
+    min-width: 0;
+}

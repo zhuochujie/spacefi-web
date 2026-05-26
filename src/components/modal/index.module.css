@@ -1,0 +1,60 @@
+.mask {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 8, 26, 0.72);
+    backdrop-filter: blur(6px);
+}
+
+.modal {
+    width: 100%;
+    max-width: 315px;
+    padding: 20px 16px 16px;
+    background: #071531;
+    border: 1px solid #1E3964;
+    border-radius: 8px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+.title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #F1F2F4;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.content {
+    margin-bottom: 18px;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.actions button {
+    flex: 1;
+    height: 38px;
+    border-radius: 5px;
+    font-size: 14px;
+    border: none;
+}
+
+.cancel {
+    color: #ADB1BC;
+    background: #101D39;
+}
+
+.confirm {
+    color: #FFF;
+    background: linear-gradient(to bottom right, #45B2E9, #6536E7);
+}
+
+.actions button:disabled {
+    opacity: 0.55;
+}

@@ -1,0 +1,31 @@
+.header {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.header button {
+    width: 52px;
+    height: 28px;
+    color: #8FB9FF;
+    font-size: 12px;
+    border: 1px solid rgba(22, 134, 255, 0.28);
+    border-radius: 999px;
+    background: rgba(22, 134, 255, 0.08);
+}
+
+.header span {
+    position: absolute;
+    left: 50%;
+    max-width: calc(100% - 128px);
+    transform: translateX(-50%);
+    color: #F1F2F4;
+    font-size: 16px;
+    font-weight: 600;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
