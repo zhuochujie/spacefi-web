@@ -186,7 +186,7 @@ function PersonalPage() {
                     </button>
                     <div className={styles.profile_badges}>
                         <span>VIP {profile?.vipLevel ?? 0}</span>
-                        <span>Node V{profile?.nodeLevel ?? 1}</span>
+                        <span>Node V{profile?.nodeLevel ?? 0}</span>
                     </div>
                 </div>
             </div>
