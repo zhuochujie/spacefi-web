@@ -99,6 +99,15 @@ function IndexPage() {
     const miners = (minersQuery.data ?? []) as Miner[]
     const minerCycle = (minerCycleQuery.data ?? null) as number | null
     const walletAddress = address
+    const { data: freeMinerClaimEnabled } = useQuery({
+        queryKey: ['mining', 'free-miner-claim-enabled'],
+        queryFn: () => readContract(wagmiConfig, {
+            address: mining.address,
+            abi: mining.abi,
+            functionName: 'freeMinerClaimEnabled',
+        }),
+        staleTime: 30_000,
+    })
     const {
         data: paymentBalances,
         isLoading: balanceLoading,
@@ -490,49 +499,51 @@ function IndexPage() {
 
             <div className={styles.miners}>
                 <p>{t('home.allMiners')}</p>
-                <div className={styles.miner}>
-                    <img
-                        src="/miners/SPACE_40.png"
-                        alt={t('home.claimFreeMiner')}
-                        onError={(event) => {
-                            event.currentTarget.src = '/miner1.png'
-                        }}
-                    />
-                    <div className={styles.info}>
-                        <span className={styles.miner_title}>
-                            {t('home.claimFreeMiner')}
-                            <em>{t('common.free')}</em>
-                        </span>
-                        <span>{t('home.claimFreeMinerDesc')}</span>
-                        <div className={styles.data}>
-                            <div>
-                                <span>{t('home.output')}</span>
-                                <span>200 SPACE</span>
-                            </div>
-                            <div>
-                                <span>{t('home.cycle')}</span>
-                                <span>35 {t('common.days')}</span>
-                            </div>
-                            <div>
-                                <span>{t('home.remaining')}</span>
-                                <span>9999{t('common.units')}</span>
+                {freeMinerClaimEnabled && (
+                    <div className={styles.miner}>
+                        <img
+                            src="/miners/SPACE_40.png"
+                            alt={t('home.claimFreeMiner')}
+                            onError={(event) => {
+                                event.currentTarget.src = '/miner1.png'
+                            }}
+                        />
+                        <div className={styles.info}>
+                            <span className={styles.miner_title}>
+                                {t('home.claimFreeMiner')}
+                                <em>{t('common.free')}</em>
+                            </span>
+                            <span>{t('home.claimFreeMinerDesc')}</span>
+                            <div className={styles.data}>
+                                <div>
+                                    <span>{t('home.output')}</span>
+                                    <span>200 SPACE</span>
+                                </div>
+                                <div>
+                                    <span>{t('home.cycle')}</span>
+                                    <span>35 {t('common.days')}</span>
+                                </div>
+                                <div>
+                                    <span>{t('home.remaining')}</span>
+                                    <span>9999{t('common.units')}</span>
+                                </div>
                             </div>
                         </div>
+                        <div className={styles.right}>
+                            <span className={styles.free_price}>
+                                <s>40 <span>SPACE</span></s>
+                                <span>0 <span>SPACE</span></span>
+                            </span>
+                            <button
+                                className={styles.buy}
+                                disabled={claimingFreeMiner}
+                                onClick={handleClaimFreeMiner}
+                            >
+                                {claimingFreeMiner ? <LoadingLabel text={t('home.claimingFreeMiner')} /> : t('home.claimNow')}
+                            </button>
+                        </div>
                     </div>
-                    <div className={styles.right}>
-                        <span className={styles.free_price}>
-                            <s>40 <span>SPACE</span></s>
-                            <span>0 <span>SPACE</span></span>
-                        </span>
-                        <button
-                            className={styles.buy}
-                            disabled={claimingFreeMiner}
-                            onClick={handleClaimFreeMiner}
-                        >
-                            {claimingFreeMiner ? <LoadingLabel text={t('home.claimingFreeMiner')} /> : t('home.claimNow')}
-                        </button>
-                    </div>
-                </div>
+                )}
                 {miners.map((miner) => (
                     <div className={styles.miner} key={miner.id}>
                         <img
