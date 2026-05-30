@@ -73,6 +73,16 @@ http://localhost:3000
 | `PENDING_PURCHASE_SIGNATURE_EXISTS` | 409 | 已有待确认购买签名，不能更换支付方式 |
 | `MINER_OUT_OF_STOCK` | 409 | 矿机库存不足 |
 | `INVALID_PURCHASE_METHOD` | 400 | 购买方式错误 |
+| `USDT_PURCHASE_CLOSED` | 409 | USDT 购买已关闭 |
+| `FREE_MINER_ALREADY_CLAIMED` | 409 | 已领取免费矿机 |
+| `FREE_MINER_HASH_ALREADY_USED` | 409 | 免费矿机交易 hash 已使用 |
+| `FREE_MINER_TX_FAILED` | 400 | 免费矿机领取交易失败 |
+| `FREE_MINER_EVENT_NOT_FOUND` | 400 | 交易 hash 中未找到免费矿机领取事件 |
+| `FREE_MINER_ACCOUNT_MISMATCH` | 400 | 免费矿机领取账户不匹配 |
+| `FREE_MINER_AMOUNT_MISMATCH` | 400 | 免费矿机领取数量不匹配 |
+| `FREE_MINER_NOT_FOUND` | 404 | 免费矿机不存在 |
+| `NO_FREE_MINER_REWARD_TO_CLAIM` | 409 | 没有可提取的免费矿机奖励 |
+| `FREE_MINER_CLAIM_LIMIT_REACHED` | 409 | 免费矿机奖励提取额度已用完 |
 | `RETRY_AFTER_5_MINUTES` | 409 | 请稍后重试 |
 | `INVALID_MINER_STATUS` | 500 | 矿机状态异常 |
 
@@ -95,8 +105,13 @@ http://localhost:3000
 | `CONFIG_NOT_FOUND` | 500 | 配置不存在 |
 | `INVALID_CONFIG_FORMAT` | 500 | 配置格式错误 |
 | `CONFIG_EXCEEDS_LIMIT` | 500 | 配置超过上限 |
-| `DIVIDEND_ACCOUNT_NOT_FOUND` | 500 | 分红账户不存在 |
 | `UNKNOWN_ERROR` | 500 | 未知服务端错误 |
+
+公告：
+
+| message | HTTP 状态码 | 说明 |
+| --- | --- | --- |
+| `NOTICE_NOT_FOUND` | 404 | 公告不存在 |
 
 ### 鉴权
 
@@ -379,6 +394,7 @@ withdraw
 withdraw_refund
 vip_dividend
 node_dividend
+free_miner_claim
 ```
 
 返回：
@@ -469,10 +485,16 @@ POST /account/claim-fee-exempt
   "data": {
     "account": "0x...",
     "exempt": true,
+    "nonce": "0",
     "signature": "0x..."
   }
 }
 ```
+
+说明：
+
+- `nonce` 来自市场合约 `feeExemptNonces(account)`。
+- 后端签名 digest 包含 `account`、`exempt` 和当前链上 `nonce`。
 
 前端拿到后调用市场合约：
 
@@ -631,7 +653,6 @@ GET /miner/my
         "cycle": 3024000,
         "cycleEndAt": 1713024000,
         "lastRewardAt": 1710000000,
-        "globalExtendedTime": 0,
         "rewardPerSecond": "1000000000000",
         "createdAt": 1710000000,
         "miner": {
@@ -670,7 +691,56 @@ GET /miner/initial-cycle
 说明：
 
 - 返回单位是天。
-- 计算方式：`35天 + 当前全局延长时间`。
+- 计算方式：读取配置 `INIT_CYCLE_SECONDS` 后换算为天。
+
+### 查询 SPACE/USDT 价格
+
+授权：公开。
+
+```http
+GET /miner/space-usdt-price
+```
+
+返回：
+
+```json
+{
+  "data": {
+    "spaceUsdtPriceWei": "1000000000000000000"
+  }
+}
+```
+
+说明：
+
+- `spaceUsdtPriceWei` 单位是 USDT wei。
+- `1000000000000000000` 表示 `1 SPACE = 1 USDT`。
+- 前端可用 `miner.price * spaceUsdtPriceWei / 1e18` 估算 `wallet_usdt_balance` 的 USDT 支付数量。
+- 最终支付数量以 `POST /miner/purchase` 返回的 `payValue` 为准。
+
+### 查询矿机奖励开始时间
+
+授权：公开。
+
+```http
+GET /miner/reward-start-at
+```
+
+返回：
+
+```json
+{
+  "data": {
+    "minerRewardStartAt": 1710000000
+  }
+}
+```
+
+说明：
+
+- `minerRewardStartAt` 是秒级 Unix 时间戳。
+- 当前时间小于该时间时，购买矿机后暂不计算奖励。
+- 当前时间大于等于该时间时，`wallet_usdt_balance` 购买方式关闭。
 
 ### 生成购买矿机签名
 
@@ -695,7 +765,15 @@ POST /miner/purchase
 internal_balance
 wallet_balance
 internal_and_wallet_balance
+wallet_usdt_balance
 ```
+
+说明：
+
+- `internal_balance`：使用平台内 SPACE 余额支付，链上 `payValue = 0`，`paymentToken = 0`。
+- `wallet_balance`：使用钱包 SPACE 支付，链上 `payValue = price`，`paymentToken = 0`。
+- `internal_and_wallet_balance`：优先使用平台内 SPACE 余额，不足部分用钱包 SPACE 支付，`paymentToken = 0`。
+- `wallet_usdt_balance`：节点等级大于 `0`，且当前时间小于 `MINER_REWARD_START_AT` 时才能使用；使用钱包 USDT 支付，`payValue = price * SPACE_USDT_PRICE_WEI / 1e18`，`paymentToken = 1`。
 
 返回：
 
@@ -710,6 +788,7 @@ internal_and_wallet_balance
     "payValue": "100000000000000000000",
     "expectedReward": "500000000000000000000",
     "method": "wallet_balance",
+    "paymentToken": 0,
     "nonce": "uuid",
     "deadline": 1710000300,
     "signature": "0x...",
@@ -722,7 +801,7 @@ internal_and_wallet_balance
 前端拿到后调用矿机合约：
 
 ```ts
-purchaseMiner(minerId, price, payValue, expectedReward, nonce, deadline, signature)
+purchaseMiner(minerId, price, payValue, expectedReward, paymentToken, nonce, deadline, signature)
 ```
 
 调用成功后，前端需要把 `nonce` 提交给后端确认。
@@ -800,6 +879,148 @@ GET /miner/nonce/:nonce
 pending  后端尚未确认链上使用情况
 used     链上 nonce 已使用，后端已处理购买成功
 unused   签名过期且链上未使用，后端已退款
+```
+
+### 提交免费矿机领取 hash
+
+授权：需要登录。
+
+```http
+POST /miner/free/hash
+```
+
+请求体：
+
+```json
+{
+  "hash": "0x..."
+}
+```
+
+说明：
+
+- 前端先调用链上 `claimFreeMiner()`。
+- 链上交易成功后，将交易 hash 提交给后端。
+- 后端异步读取 receipt 并解析 `FreeMinerClaimed` 事件。
+- 事件里的 `account` 必须等于当前登录用户地址。
+- 事件里的 `spaceAmount` 必须等于配置 `FREE_MINER_PRICE_WEI`。
+- 校验通过后，后端创建免费矿机记录。
+
+### 查询免费矿机 hash 处理状态
+
+授权：需要登录。
+
+```http
+GET /miner/free/hash/:hash
+```
+
+返回：
+
+```json
+{
+  "data": {
+    "id": 1,
+    "accountId": 1,
+    "price": "40000000000000000000",
+    "expectedReward": "200000000000000000000",
+    "producedReward": "0",
+    "claimedReward": "0",
+    "cycle": 3024000,
+    "cycleEndAt": 1713024000,
+    "lastRewardAt": 1710000000,
+    "rewardPerSecond": "9259259259259",
+    "createdAt": 1710000000,
+    "hash": "0x..."
+  }
+}
+```
+
+如果还没有处理完成或处理失败：
+
+```json
+{
+  "data": null
+}
+```
+
+### 查询我的免费矿机
+
+授权：需要登录。
+
+```http
+GET /miner/free/my
+```
+
+返回：
+
+```json
+{
+  "data": {
+    "id": 1,
+    "accountId": 1,
+    "price": "40000000000000000000",
+    "expectedReward": "200000000000000000000",
+    "producedReward": "10000000000000000000",
+    "claimedReward": "0",
+    "availableReward": "10000000000000000000",
+    "claimLimit": "20000000000000000000",
+    "claimableReward": "10000000000000000000",
+    "cycle": 3024000,
+    "cycleEndAt": 1713024000,
+    "lastRewardAt": 1710000000,
+    "rewardPerSecond": "9259259259259",
+    "createdAt": 1710000000,
+    "hash": "0x..."
+  }
+}
+```
+
+如果没有免费矿机：
+
+```json
+{
+  "data": null
+}
+```
+
+说明：
+
+- `availableReward = producedReward - claimedReward`。
+- `claimLimit = 已购买付费矿机金额 * 20%`。
+- `claimableReward = min(availableReward, claimLimit - claimedReward)`。
+
+### 提取免费矿机奖励
+
+授权：需要登录。
+
+```http
+POST /miner/free/claim-reward
+```
+
+说明：
+
+- 免费矿机产出先暂存在矿机里，不会直接进入用户余额。
+- 用户最多可累计提取已购买付费矿机金额的 `20%`。
+- 本次提取数量为当前 `claimableReward`。
+- 提取成功后，增加用户 `balance`，并写入 `free_miner_claim` 资金记录。
+
+返回：
+
+```json
+{
+  "data": {
+    "freeMiner": {
+      "id": 1,
+      "producedReward": "10000000000000000000",
+      "claimedReward": "10000000000000000000",
+      "availableReward": "0",
+      "claimLimit": "20000000000000000000",
+      "claimableReward": "0"
+    },
+    "claimedAmount": "10000000000000000000",
+    "balance": "10000000000000000000"
+  }
+}
 ```
 
 ## 市场

@@ -1,7 +1,8 @@
 import { useState, type CSSProperties } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router"
-import { getMyMiners, type MyMiner } from "../../api"
+import { toast } from "react-hot-toast"
+import { claimFreeMinerReward, getMyFreeMiner, getMyMiners, type FreeMiner, type MyMiner } from "../../api"
 import { formatBigintAmount } from "../../utils/format"
 import { getApiErrorKey, useI18n } from "../../i18n"
 import styles from "./index.module.css"
@@ -12,6 +13,10 @@ import DetailsIcon from './images/details.svg'
 
 const SECONDS_PER_DAY = 86400
 type MinerFilter = 'all' | 'running' | 'out'
+type RewardMiner = Pick<MyMiner, 'id' | 'expectedReward' | 'producedReward' | 'cycle' | 'cycleEndAt'>
+type MinerListItem =
+    | { type: 'paid'; data: MyMiner }
+    | { type: 'free'; data: FreeMiner }
 
 const FILTER_OPTIONS: Array<{ labelKey: string; value: MinerFilter }> = [
     { labelKey: 'miner.all', value: 'all' },
@@ -19,7 +24,7 @@ const FILTER_OPTIONS: Array<{ labelKey: string; value: MinerFilter }> = [
     { labelKey: 'miner.out', value: 'out' },
 ]
 
-function getRemainingReward(miner: MyMiner) {
+function getRemainingReward(miner: RewardMiner) {
     const remaining = BigInt(miner.expectedReward) - BigInt(miner.producedReward)
 
     return remaining > 0n ? remaining : 0n
@@ -38,7 +43,7 @@ function getCycleDays(cycle: number) {
     return Math.max(1, Math.ceil(cycle / SECONDS_PER_DAY))
 }
 
-function getElapsedDays(miner: MyMiner) {
+function getElapsedDays(miner: RewardMiner) {
     const totalDays = getCycleDays(miner.cycle)
     const now = Math.floor(Date.now() / 1000)
     const cycleStartAt = miner.cycleEndAt - miner.cycle
@@ -47,7 +52,7 @@ function getElapsedDays(miner: MyMiner) {
     return Math.min(totalDays, Math.floor(elapsedSeconds / SECONDS_PER_DAY) + 1)
 }
 
-function getProgress(miner: MyMiner) {
+function getProgress(miner: RewardMiner) {
     const expectedReward = BigInt(miner.expectedReward)
 
     if (expectedReward === 0n) {
@@ -60,8 +65,27 @@ function getProgress(miner: MyMiner) {
     return Math.min(100, Math.max(0, progress))
 }
 
+function getFreeMinerAvailableReward(miner: FreeMiner) {
+    if (miner.availableReward !== undefined) {
+        return BigInt(miner.availableReward)
+    }
+
+    const availableReward = BigInt(miner.producedReward) - BigInt(miner.claimedReward)
+
+    return availableReward > 0n ? availableReward : 0n
+}
+
+function toMinerLike(item: MinerListItem) {
+    if (item.type === 'paid') {
+        return item.data
+    }
+
+    return item.data
+}
+
 function MinerPage() {
     const navigate = useNavigate()
+    const queryClient = useQueryClient()
     const { t } = useI18n()
     const [minerFilter, setMinerFilter] = useState<MinerFilter>('all')
     const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -75,19 +99,52 @@ function MinerPage() {
         queryFn: getMyMiners,
         staleTime: 30_000,
     })
+    const {
+        data: freeMiner,
+        isLoading: freeMinerLoading,
+        isError: freeMinerError,
+        error: freeMinerQueryError,
+    } = useQuery({
+        queryKey: ['miners', 'free', 'my'],
+        queryFn: getMyFreeMiner,
+        staleTime: 30_000,
+    })
     const myMiners = data?.list ?? []
     const minerReward = data?.minerReward ?? '0'
     const teamReward = data?.teamReward ?? '0'
-    const totalRemainingReward = myMiners.reduce((total, miner) => total + getRemainingReward(miner), 0n)
+    const minerItems: MinerListItem[] = [
+        ...(freeMiner ? [{ type: 'free' as const, data: freeMiner }] : []),
+        ...myMiners.map((miner) => ({ type: 'paid' as const, data: miner })),
+    ]
+    const pageLoading = loading || freeMinerLoading
+    const pageError = isError || freeMinerError
+    const pageErrorMessage = error || freeMinerQueryError
+    const totalMinerReward = BigInt(minerReward) + BigInt(freeMiner?.producedReward ?? '0')
+    const totalRemainingReward = minerItems.reduce((total, item) => total + getRemainingReward(toMinerLike(item)), 0n)
     const selectedFilterLabel = t(FILTER_OPTIONS.find((option) => option.value === minerFilter)?.labelKey || 'miner.all')
-    const filteredMiners = myMiners.filter((miner) => {
+    const filteredMiners = minerItems.filter((item) => {
         if (minerFilter === 'all') {
             return true
         }
 
-        const isOut = getRemainingReward(miner) === 0n
+        const isOut = getRemainingReward(toMinerLike(item)) === 0n
 
         return minerFilter === 'out' ? isOut : !isOut
+    })
+    const claimFreeRewardMutation = useMutation({
+        mutationFn: claimFreeMinerReward,
+        onSuccess: async () => {
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['miners', 'free', 'my'] }),
+                queryClient.invalidateQueries({ queryKey: ['miners', 'my'] }),
+                queryClient.invalidateQueries({ queryKey: ['profile'] }),
+                queryClient.invalidateQueries({ queryKey: ['balance-logs'] }),
+            ])
+            toast.success(t('miner.claimRewardSuccess'))
+        },
+        onError: (claimError) => {
+            toast.error(claimError instanceof Error ? t(getApiErrorKey(claimError.message)) : t('miner.claimRewardFailed'))
+        },
     })
 
     return ( 
@@ -117,7 +174,7 @@ function MinerPage() {
                             <img src={Miner} alt="" />
                             <div>
                                 <span>{t('miner.minerReward')}</span>
-                                <span>{formatBigintAmount(minerReward)} <span>SPACE</span></span>
+                                <span>{formatBigintAmount(totalMinerReward)} <span>SPACE</span></span>
                             </div>
                         </div>
 
@@ -167,57 +224,84 @@ function MinerPage() {
                     </div>
                 </div>
 
-                {loading && <div className={styles.empty_miner}><div>{t('common.loading')}</div><span>{t('miner.loadingData')}</span></div>}
-                {!loading && isError && <div className={styles.empty_miner}><div>{t('miner.loadFailed')}</div><span>{error instanceof Error ? t(getApiErrorKey(error.message)) : t('miner.loadFailedMessage')}</span></div>}
-                {!loading && !isError && myMiners.length === 0 && (
+                {pageLoading && <div className={styles.empty_miner}><div>{t('common.loading')}</div><span>{t('miner.loadingData')}</span></div>}
+                {!pageLoading && pageError && <div className={styles.empty_miner}><div>{t('miner.loadFailed')}</div><span>{pageErrorMessage instanceof Error ? t(getApiErrorKey(pageErrorMessage.message)) : t('miner.loadFailedMessage')}</span></div>}
+                {!pageLoading && !pageError && minerItems.length === 0 && (
                     <div className={styles.empty_miner}>
                         <div>{t('miner.noMiners')}</div>
                         <span>{t('miner.noMinersDesc')}</span>
                     </div>
                 )}
-                {!loading && !isError && myMiners.length > 0 && filteredMiners.length === 0 && (
+                {!pageLoading && !pageError && minerItems.length > 0 && filteredMiners.length === 0 && (
                     <div className={styles.empty_miner}>
                         <div>{t('miner.noFiltered', { label: selectedFilterLabel })}</div>
                         <span>{t('miner.noFilteredDesc')}</span>
                     </div>
                 )}
-                {!loading && !isError && filteredMiners.map((item) => {
-                    const progress = getProgress(item)
-                    const isOut = getRemainingReward(item) === 0n
-                    const totalDays = getCycleDays(item.cycle)
-                    const cycleStartAt = item.cycleEndAt - item.cycle
+                {!pageLoading && !pageError && filteredMiners.map((item) => {
+                    const miner = toMinerLike(item)
+                    const progress = getProgress(miner)
+                    const isOut = getRemainingReward(miner) === 0n
+                    const totalDays = getCycleDays(miner.cycle)
+                    const cycleStartAt = miner.cycleEndAt - miner.cycle
+                    const minerName = item.type === 'free' ? t('miner.freeMiner') : item.data.miner.name
+                    const minerDesc = item.type === 'free' ? t('miner.freeMinerDesc') : t(item.data.miner.desc)
+                    const minerImage = item.type === 'free' ? '/miners/SPACE_40.png' : `/miners/${item.data.miner.id}.png`
+                    const claimableReward = item.type === 'free' ? BigInt(item.data.claimableReward ?? '0') : 0n
                     const progressStyle = {
                         '--progress': `${progress}%`,
                     } as CSSProperties
 
                     return (
-                        <div className={styles.miner} key={item.id}>
+                        <div className={styles.miner} key={`${item.type}-${miner.id}`}>
                             <img
-                                src={`/miners/${item.miner.id}.png`}
-                                alt={item.miner.name}
+                                src={minerImage}
+                                alt={minerName}
                                 onError={(event) => {
                                     event.currentTarget.src = '/miner1.png'
                                 }}
                             />
                             <div className={styles.miner_info}>
-                                <span className={styles.miner_name}>{item.miner.name}</span>
+                                <span className={styles.miner_name}>
+                                    {minerName}
+                                    {item.type === 'free' && <em>{t('common.free')}</em>}
+                                </span>
+                                <span className={styles.miner_desc}>{minerDesc}</span>
                                 <div className={styles.miner_meta}>
                                     <div>
                                         <span>{t('home.cycle')}</span>
-                                        <span>{getElapsedDays(item)} / {totalDays}</span>
+                                        <span>{getElapsedDays(miner)} / {totalDays}</span>
                                     </div>
                                     <div>
                                         <span>{t('miner.cycleTime')}</span>
-                                        <span>{formatDate(cycleStartAt)} ~ {formatDate(item.cycleEndAt)}</span>
+                                        <span>{formatDate(cycleStartAt)} ~ {formatDate(miner.cycleEndAt)}</span>
                                     </div>
                                 </div>
                                 <span className={styles.miner_output}>
-                                    {t('miner.produced')} <span>{formatBigintAmount(item.producedReward)} SPACE</span> / {t('miner.total')} {formatBigintAmount(item.expectedReward)} SPACE
+                                    {t('miner.produced')} <span>{formatBigintAmount(miner.producedReward)} SPACE</span> / {t('miner.total')} {formatBigintAmount(miner.expectedReward)} SPACE
                                 </span>
                             </div>
                             <div className={styles.miner_status}>
-                                <div className={`${styles.status_badge} ${isOut ? styles.status_out : ''}`}>{isOut ? t('miner.out') : t('miner.statusRunning')}</div>
-                                {isOut
+                                {item.type === 'free'
+                                    ? (
+                                        <div className={styles.unclaimed_reward}>
+                                            <span>{t('miner.unclaimedReward')}</span>
+                                            <strong>{formatBigintAmount(getFreeMinerAvailableReward(item.data))}</strong>
+                                        </div>
+                                    )
+                                    : <div className={`${styles.status_badge} ${isOut ? styles.status_out : ''}`}>{isOut ? t('miner.out') : t('miner.statusRunning')}</div>}
+                                {item.type === 'free'
+                                    ? (
+                                        <button
+                                            className={styles.claim_btn}
+                                            type="button"
+                                            disabled={claimableReward === 0n || claimFreeRewardMutation.isPending}
+                                            onClick={() => claimFreeRewardMutation.mutate()}
+                                        >
+                                            {claimFreeRewardMutation.isPending ? t('miner.claimingReward') : t('miner.claimReward')}
+                                        </button>
+                                    )
+                                    : isOut
                                     ? <button className={styles.reinvest_btn}>{t('miner.reinvest')}</button>
                                     : <div className={styles.progress} style={progressStyle}>{progress}%</div>}
                             </div>

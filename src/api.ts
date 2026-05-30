@@ -34,7 +34,7 @@ export type MyMiner = {
     cycle: number
     cycleEndAt: number
     lastRewardAt: number
-    globalExtendedTime: number
+    globalExtendedTime?: number
     rewardPerSecond: string
     createdAt: number
     miner: Miner
@@ -44,6 +44,30 @@ export type MyMinerData = {
     list: MyMiner[]
     minerReward: string
     teamReward: string
+}
+
+export type FreeMiner = {
+    id: number
+    accountId: number
+    price: string
+    expectedReward: string
+    producedReward: string
+    claimedReward: string
+    availableReward?: string
+    claimLimit?: string
+    claimableReward?: string
+    cycle: number
+    cycleEndAt: number
+    lastRewardAt: number
+    rewardPerSecond: string
+    createdAt: number
+    hash: `0x${string}`
+}
+
+export type FreeMinerClaimReward = {
+    freeMiner: Partial<FreeMiner>
+    claimedAmount: string
+    balance: string
 }
 
 export type Profile = {
@@ -60,6 +84,7 @@ export type Profile = {
 export type BalanceLogType =
     | 'miner_reward'
     | 'team_reward'
+    | 'free_miner_claim'
     | 'miner_purchase'
     | 'miner_purchase_refund'
     | 'withdraw'
@@ -99,7 +124,7 @@ export type CommissionLevel = {
     commissionLevel: number
 }
 
-export type PurchaseMinerMethod = 'internal_balance' | 'wallet_balance' | 'internal_and_wallet_balance'
+export type PurchaseMinerMethod = 'internal_balance' | 'wallet_balance' | 'internal_and_wallet_balance' | 'wallet_usdt_balance'
 
 export type PurchaseMinerSignature = {
     id: number
@@ -110,6 +135,7 @@ export type PurchaseMinerSignature = {
     payValue: string
     expectedReward: string
     method: PurchaseMinerMethod
+    paymentToken: number
     nonce: string
     deadline: number
     signature: `0x${string}`
@@ -169,6 +195,14 @@ export type MarketTakerTrade = {
 export type MarketLatestPrice = {
     price: string
     trade: MarketTakerTrade | null
+}
+
+export type MinerSpaceUsdtPrice = {
+    spaceUsdtPriceWei: string
+}
+
+export type MinerRewardStartAt = {
+    minerRewardStartAt: number
 }
 
 export type MarketHashRecord = {
@@ -363,8 +397,43 @@ export function getMinerInitialCycle() {
     })
 }
 
+export function getMinerSpaceUsdtPrice() {
+    return request<MinerSpaceUsdtPrice>('/miner/space-usdt-price')
+}
+
+export function getMinerRewardStartAt() {
+    return request<MinerRewardStartAt>('/miner/reward-start-at')
+}
+
 export function getMyMiners() {
     return request<MyMinerData>('/miner/my', {
+        auth: true,
+    })
+}
+
+export function submitFreeMinerHash(hash: `0x${string}`) {
+    return request<unknown>('/miner/free/hash', {
+        method: 'POST',
+        auth: true,
+        body: JSON.stringify({ hash }),
+    })
+}
+
+export function getFreeMinerHash(hash: `0x${string}`) {
+    return request<FreeMiner | null>(`/miner/free/hash/${hash}`, {
+        auth: true,
+    })
+}
+
+export function getMyFreeMiner() {
+    return request<FreeMiner | null>('/miner/free/my', {
+        auth: true,
+    })
+}
+
+export function claimFreeMinerReward() {
+    return request<FreeMinerClaimReward>('/miner/free/claim-reward', {
+        method: 'POST',
         auth: true,
     })
 }

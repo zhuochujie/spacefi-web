@@ -11,6 +11,7 @@ const PAGE_SIZE = 12
 const balanceLogText: Record<BalanceLogType, string> = {
     miner_reward: 'logType.miner_reward',
     team_reward: 'logType.team_reward',
+    free_miner_claim: 'logType.free_miner_claim',
     miner_purchase: 'logType.miner_purchase',
     miner_purchase_refund: 'logType.miner_purchase_refund',
     withdraw: 'logType.withdraw',
@@ -63,7 +64,7 @@ function BalanceLogsPage() {
                                 <span>{t(balanceLogText[log.type])}</span>
                                 <em>{formatTime(log.createdAt)}</em>
                             </div>
-                            <strong>{formatBigintAmount(log.amount)} {log.token}</strong>
+                            <strong>{formatBigintAmount(log.amount, { fractionDigits: 5 })} {log.token}</strong>
                         </div>
                     </div>
                 ))}

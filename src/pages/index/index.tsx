@@ -8,19 +8,22 @@ import { erc20Abi, maxUint256, type Address, type Hash } from "viem"
 import {
     getLatestNotice,
     getMinerInitialCycle,
+    getMinerRewardStartAt,
     getMiners,
+    getMinerSpaceUsdtPrice,
     getProfile,
     purchaseMiner,
     claimFeeExempt,
+    submitFreeMinerHash,
     submitMinerNonce,
     type Miner,
     type Notice,
     type PurchaseMinerMethod,
 } from "../../api"
 import { formatBigintAmount } from "../../utils/format"
-import { waitForMinerNonceUsed } from "../../utils/miner"
+import { waitForFreeMinerHash, waitForMinerNonceUsed } from "../../utils/miner"
 import { getLocalizedNotice } from "../../utils/notice"
-import { market, mining, spaceToken } from "../../web3/constants"
+import { market, mining, spaceToken, usdtToken } from "../../web3/constants"
 import { wagmiConfig } from "../../web3/config"
 import Modal from "../../components/modal"
 import LoadingLabel from "../../components/loading-label"
@@ -32,12 +35,27 @@ import Safety from './images/safety_bb.png'
 import Transparent from './images/transparent_bb.png'
 import Efficient from './images/efficient_bb.png'
 
-function getApiErrorMessage(error: unknown) {
+function getApiErrorMessage(error: unknown, fallbackKey = '') {
     if (!(error instanceof Error) || !error.message) {
-        return ''
+        return fallbackKey
     }
 
-    return getFriendlyErrorKey(error.message, '')
+    return getFriendlyErrorKey(error.message, fallbackKey)
+}
+
+function formatDateTime(timestamp: number) {
+    const date = new Date(timestamp * 1000)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hour = String(date.getHours()).padStart(2, '0')
+    const minute = String(date.getMinutes()).padStart(2, '0')
+
+    return `${year}-${month}-${day} ${hour}:${minute}`
+}
+
+function getCurrentUnixTime() {
+    return Math.floor(Date.now() / 1000)
 }
 
 function IndexPage() {
@@ -66,8 +84,10 @@ function IndexPage() {
     const [pendingNonce, setPendingNonce] = useState('')
     const [pendingHash, setPendingHash] = useState<Hash>()
     const [claimingFeeExempt, setClaimingFeeExempt] = useState(false)
+    const [claimingFreeMiner, setClaimingFreeMiner] = useState(false)
     const [selectedMiner, setSelectedMiner] = useState<Miner | null>(null)
     const [paymentMethod, setPaymentMethod] = useState<PurchaseMinerMethod>('wallet_balance')
+    const [paymentOpenedAt, setPaymentOpenedAt] = useState(0)
     const { address } = useConnection()
     const { mutateAsync: writeContract } = useWriteContract()
     const { isSuccess: isPurchaseConfirmed, isError: isPurchaseFailed } = useWaitForTransactionReceipt({
@@ -86,13 +106,19 @@ function IndexPage() {
         queryKey: ['miner-payment-balances', walletAddress],
         queryFn: async () => {
             if (!walletAddress) {
-                return { internalBalance: 0n, walletBalance: 0n }
+                return { internalBalance: 0n, walletSpaceBalance: 0n, walletUsdtBalance: 0n, nodeLevel: 0 }
             }
 
-            const [profile, walletSpaceBalance] = await Promise.all([
+            const [profile, walletSpaceBalance, walletUsdtBalance] = await Promise.all([
                 getProfile(),
                 readContract(wagmiConfig, {
                     address: spaceToken as Address,
+                    abi: erc20Abi,
+                    functionName: 'balanceOf',
+                    args: [walletAddress],
+                }),
+                readContract(wagmiConfig, {
+                    address: usdtToken as Address,
                     abi: erc20Abi,
                     functionName: 'balanceOf',
                     args: [walletAddress],
@@ -101,7 +127,9 @@ function IndexPage() {
 
             return {
                 internalBalance: BigInt(profile.balance),
-                walletBalance: walletSpaceBalance,
+                walletSpaceBalance,
+                walletUsdtBalance,
+                nodeLevel: profile.nodeLevel,
             }
         },
         enabled: Boolean(selectedMiner && walletAddress),
@@ -109,7 +137,28 @@ function IndexPage() {
         refetchOnWindowFocus: false,
     })
     const internalBalance = paymentBalances?.internalBalance ?? 0n
-    const walletBalance = paymentBalances?.walletBalance ?? 0n
+    const walletSpaceBalance = paymentBalances?.walletSpaceBalance ?? 0n
+    const walletUsdtBalance = paymentBalances?.walletUsdtBalance ?? 0n
+    const nodeLevel = paymentBalances?.nodeLevel ?? 0
+    const { data: spaceUsdtPrice } = useQuery({
+        queryKey: ['miners', 'space-usdt-price'],
+        queryFn: getMinerSpaceUsdtPrice,
+        enabled: Boolean(selectedMiner),
+        staleTime: 20_000,
+    })
+    const { data: minerRewardStartAt } = useQuery({
+        queryKey: ['miners', 'reward-start-at'],
+        queryFn: getMinerRewardStartAt,
+        enabled: Boolean(selectedMiner),
+        staleTime: 60_000,
+    })
+    const rewardStartAt = minerRewardStartAt?.minerRewardStartAt ?? 0
+    const canUseWalletUsdt = nodeLevel > 0 && rewardStartAt > 0 && paymentOpenedAt > 0 && paymentOpenedAt < rewardStartAt
+    const usdtPaymentEndsAtText = rewardStartAt > 0 ? formatDateTime(rewardStartAt) : ''
+
+    const activePaymentMethod = paymentMethod === 'wallet_usdt_balance' && !canUseWalletUsdt
+        ? 'wallet_balance'
+        : paymentMethod
 
     useEffect(() => {
         function updateNoticeAnimation() {
@@ -185,20 +234,42 @@ function IndexPage() {
         handlePurchaseFailed()
     }, [isPurchaseFailed, t])
 
+    const getEstimatedUsdtPay = (miner: Miner) => {
+        return BigInt(miner.price) * BigInt(spaceUsdtPrice?.spaceUsdtPriceWei || '0') / 10n ** 18n
+    }
+
     const getAvailableBalance = (method: PurchaseMinerMethod) => {
         if (method === 'internal_balance') {
             return internalBalance
         }
 
         if (method === 'wallet_balance') {
-            return walletBalance
+            return walletSpaceBalance
         }
 
-        return internalBalance + walletBalance
+        if (method === 'wallet_usdt_balance') {
+            return walletUsdtBalance
+        }
+
+        return internalBalance + walletSpaceBalance
+    }
+
+    const getRequiredBalance = (method: PurchaseMinerMethod, miner: Miner) => {
+        if (method === 'wallet_usdt_balance') {
+            return getEstimatedUsdtPay(miner)
+        }
+
+        return BigInt(miner.price)
     }
 
     const isBalanceEnough = (method: PurchaseMinerMethod, miner: Miner) => {
-        return getAvailableBalance(method) >= BigInt(miner.price)
+        const requiredBalance = getRequiredBalance(method, miner)
+
+        if (method === 'wallet_usdt_balance' && requiredBalance === 0n) {
+            return walletUsdtBalance > 0n
+        }
+
+        return getAvailableBalance(method) >= requiredBalance
     }
 
     const closePaymentModal = () => {
@@ -207,6 +278,7 @@ function IndexPage() {
 
     const openPaymentModal = (miner: Miner) => {
         setSelectedMiner(miner)
+        setPaymentOpenedAt(getCurrentUnixTime())
         setPaymentMethod('wallet_balance')
     }
 
@@ -225,10 +297,12 @@ function IndexPage() {
             setBuyingMinerId(miner.id)
             const purchase = await purchaseMiner(miner.id, method)
             const payValue = BigInt(purchase.payValue)
+            const paymentToken = purchase.paymentToken ?? 0
 
             if (payValue > 0n) {
+                const paymentTokenAddress = paymentToken === 1 ? usdtToken : spaceToken
                 const allowance = await readContract(wagmiConfig, {
-                    address: spaceToken as Address,
+                    address: paymentTokenAddress as Address,
                     abi: erc20Abi,
                     functionName: 'allowance',
                     args: [address, mining.address],
@@ -236,7 +310,7 @@ function IndexPage() {
 
                 if (allowance < payValue) {
                     const approveHash = await writeContract({
-                        address: spaceToken as Address,
+                        address: paymentTokenAddress as Address,
                         abi: erc20Abi,
                         functionName: 'approve',
                         args: [mining.address, maxUint256],
@@ -257,6 +331,7 @@ function IndexPage() {
                     BigInt(purchase.price),
                     payValue,
                     BigInt(purchase.expectedReward),
+                    paymentToken,
                     purchase.nonce,
                     BigInt(purchase.deadline),
                     purchase.signature,
@@ -276,7 +351,7 @@ function IndexPage() {
             setBuyingMinerId(null)
             setPendingHash(undefined)
             setPendingNonce('')
-            toast.error(t(getApiErrorMessage(error) || 'home.purchaseFailed'))
+            toast.error(t(getApiErrorMessage(error, 'common.walletActionFailed') || 'home.purchaseFailed'))
         }
     }
 
@@ -285,7 +360,7 @@ function IndexPage() {
             return
         }
 
-        executePurchase(selectedMiner, paymentMethod)
+        executePurchase(selectedMiner, activePaymentMethod)
     }
 
     const handleClaimFeeExempt = async () => {
@@ -326,9 +401,45 @@ function IndexPage() {
             await queryClient.invalidateQueries({ queryKey: ['profile'] })
             toast.success(t('home.applySuccess'))
         } catch (error) {
-            toast.error(t(getApiErrorMessage(error) || 'home.applyFailed'))
+            toast.error(t(getApiErrorMessage(error, 'common.walletActionFailed') || 'home.applyFailed'))
         } finally {
             setClaimingFeeExempt(false)
+        }
+    }
+
+    const handleClaimFreeMiner = async () => {
+        if (claimingFreeMiner) {
+            return
+        }
+
+        try {
+            if (!address) {
+                toast.error(t('common.connectWalletFirst'))
+                return
+            }
+
+            setClaimingFreeMiner(true)
+            const hash = await writeContract({
+                address: mining.address,
+                abi: mining.abi,
+                functionName: 'claimFreeMiner',
+            })
+
+            await waitForTransactionReceipt(wagmiConfig, {
+                hash,
+            })
+            await submitFreeMinerHash(hash)
+            await waitForFreeMinerHash(hash)
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['miners', 'free', 'my'] }),
+                queryClient.invalidateQueries({ queryKey: ['miners', 'my'] }),
+                queryClient.invalidateQueries({ queryKey: ['profile'] }),
+            ])
+            toast.success(t('home.claimFreeMinerSuccess'))
+        } catch (error) {
+            toast.error(t(getApiErrorMessage(error, 'common.walletActionFailed') || 'home.claimFreeMinerFailed'))
+        } finally {
+            setClaimingFreeMiner(false)
         }
     }
 
@@ -379,6 +490,49 @@ function IndexPage() {
 
             <div className={styles.miners}>
                 <p>{t('home.allMiners')}</p>
+                <div className={styles.miner}>
+                    <img
+                        src="/miners/SPACE_40.png"
+                        alt={t('home.claimFreeMiner')}
+                        onError={(event) => {
+                            event.currentTarget.src = '/miner1.png'
+                        }}
+                    />
+                    <div className={styles.info}>
+                        <span className={styles.miner_title}>
+                            {t('home.claimFreeMiner')}
+                            <em>{t('common.free')}</em>
+                        </span>
+                        <span>{t('home.claimFreeMinerDesc')}</span>
+                        <div className={styles.data}>
+                            <div>
+                                <span>{t('home.output')}</span>
+                                <span>200 SPACE</span>
+                            </div>
+                            <div>
+                                <span>{t('home.cycle')}</span>
+                                <span>35 {t('common.days')}</span>
+                            </div>
+                            <div>
+                                <span>{t('home.remaining')}</span>
+                                <span>9999{t('common.units')}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className={styles.right}>
+                        <span className={styles.free_price}>
+                            <s>40 <span>SPACE</span></s>
+                            <span>0 <span>SPACE</span></span>
+                        </span>
+                        <button
+                            className={styles.buy}
+                            disabled={claimingFreeMiner}
+                            onClick={handleClaimFreeMiner}
+                        >
+                            {claimingFreeMiner ? <LoadingLabel text={t('home.claimingFreeMiner')} /> : t('home.claimNow')}
+                        </button>
+                    </div>
+                </div>
                 {miners.map((miner) => (
                     <div className={styles.miner} key={miner.id}>
                         <img
@@ -448,7 +602,7 @@ function IndexPage() {
                 title="home.paymentTitle"
                 confirmText="home.confirmPurchase"
                 confirmLoading={Boolean(buyingMinerId)}
-                confirmDisabled={!selectedMiner || balanceLoading || Boolean(buyingMinerId) || !isBalanceEnough(paymentMethod, selectedMiner)}
+                confirmDisabled={!selectedMiner || balanceLoading || Boolean(buyingMinerId) || !isBalanceEnough(activePaymentMethod, selectedMiner)}
                 onCancel={closePaymentModal}
                 onConfirm={handleConfirmPayment}
             >
@@ -459,22 +613,30 @@ function IndexPage() {
                             <span>{formatBigintAmount(selectedMiner.price)} SPACE</span>
                         </div>
                         {[
-                            { value: 'wallet_balance', label: t('home.walletBalance'), balance: walletBalance },
-                            { value: 'internal_balance', label: t('home.accountBalance'), balance: internalBalance },
-                            { value: 'internal_and_wallet_balance', label: t('home.accountAndWallet'), balance: internalBalance + walletBalance },
+                            { value: 'wallet_balance', label: t('home.walletBalance'), balance: walletSpaceBalance, token: 'SPACE' },
+                            { value: 'internal_balance', label: t('home.accountBalance'), balance: internalBalance, token: 'SPACE' },
+                            { value: 'internal_and_wallet_balance', label: t('home.accountAndWallet'), balance: internalBalance + walletSpaceBalance, token: 'SPACE' },
+                            ...(canUseWalletUsdt ? [{
+                                value: 'wallet_usdt_balance',
+                                label: t('home.walletUsdtBalance'),
+                                balance: walletUsdtBalance,
+                                token: 'USDT',
+                                hint: t('home.usdtPaymentEndsAt', { time: usdtPaymentEndsAtText }),
+                            }] : []),
                         ].map((item) => {
                             const value = item.value as PurchaseMinerMethod
                             const enough = isBalanceEnough(value, selectedMiner)
 
                             return (
                                 <button
-                                    className={`${styles.payment_option} ${paymentMethod === value ? styles.payment_active : ''}`}
+                                    className={`${styles.payment_option} ${activePaymentMethod === value ? styles.payment_active : ''}`}
                                     key={value}
                                     onClick={() => setPaymentMethod(value)}
                                 >
                                     <div>
                                         <span>{item.label}</span>
-                                        <span>{formatBigintAmount(item.balance)} SPACE</span>
+                                        <span>{formatBigintAmount(item.balance)} {item.token}</span>
+                                        {'hint' in item && item.hint && <em>{item.hint}</em>}
                                     </div>
                                     <span className={enough ? styles.enough : styles.not_enough}>{enough ? t('home.available') : t('home.notEnough')}</span>
                                 </button>

@@ -1137,7 +1137,7 @@ export const marketAbi = [
 ] as const satisfies Abi;
 
 export const market = {
-    address: '0x19B7800Ea63E8948725A9A4494c74001e87be998',
+    address: '0xa0050f443ae10B3bC8C6c25332aD3DBd5B0928Df',
     abi: marketAbi,
 } as const;
 
@@ -1180,6 +1180,16 @@ export const miningAbi = [
                 "name": "usdtFeeReceiverAddr",
                 "type": "address",
                 "internalType": "address"
+            },
+            {
+                "name": "usdtPurchaseSpaceLimit_",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "freeMinerSpaceAmount_",
+                "type": "uint256",
+                "internalType": "uint256"
             }
         ],
         "stateMutability": "nonpayable"
@@ -1224,31 +1234,70 @@ export const miningAbi = [
     },
     {
         "type": "function",
+        "name": "claimFreeMiner",
+        "inputs": [],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "claimedFreeMiners",
+        "inputs": [
+            {
+                "name": "account",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "claimed",
+                "type": "bool",
+                "internalType": "bool"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
         "name": "dividend",
         "inputs": [
             {
-                "name": "vipFeeVaultSpaceBalance",
+                "name": "vipFeeVaultSpaceAmount",
                 "type": "uint256",
                 "internalType": "uint256"
             },
             {
-                "name": "nodeFeeVaultSpaceBalance",
+                "name": "nodeFeeVaultSpaceAmount",
                 "type": "uint256",
                 "internalType": "uint256"
             },
             {
-                "name": "nodeFeeVaultUsdtBalanceToMiner",
+                "name": "nodeFeeVaultUsdtAmountToMiner",
                 "type": "uint256",
                 "internalType": "uint256"
             },
             {
-                "name": "nodeFeeVaultUsdtBalanceToUsdtFeeReceiver",
+                "name": "nodeFeeVaultUsdtAmountToUsdtFeeReceiver",
                 "type": "uint256",
                 "internalType": "uint256"
             }
         ],
         "outputs": [],
         "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "freeMinerSpaceAmount",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
     },
     {
         "type": "function",
@@ -1322,6 +1371,11 @@ export const miningAbi = [
                 "name": "expectedReward",
                 "type": "uint256",
                 "internalType": "uint256"
+            },
+            {
+                "name": "paymentToken",
+                "type": "uint8",
+                "internalType": "enum Mining.PaymentToken"
             },
             {
                 "name": "nonce",
@@ -1428,6 +1482,11 @@ export const miningAbi = [
                 "internalType": "uint256"
             },
             {
+                "name": "paymentToken",
+                "type": "uint8",
+                "internalType": "enum Mining.PaymentToken"
+            },
+            {
                 "name": "nonce",
                 "type": "string",
                 "internalType": "string"
@@ -1486,6 +1545,19 @@ export const miningAbi = [
     },
     {
         "type": "function",
+        "name": "setUsdtFeeReceiver",
+        "inputs": [
+            {
+                "name": "newUsdtFeeReceiver",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
         "name": "signer",
         "inputs": [],
         "outputs": [
@@ -1532,6 +1604,32 @@ export const miningAbi = [
                 "name": "",
                 "type": "address",
                 "internalType": "address"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "usdtPurchaseSpaceLimit",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "usdtPurchasedSpaceAmount",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
             }
         ],
         "stateMutability": "view"
@@ -1662,6 +1760,37 @@ export const miningAbi = [
     },
     {
         "type": "event",
+        "name": "DividendDistributed",
+        "inputs": [
+            {
+                "name": "vipFeeVaultSpaceAmount",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            },
+            {
+                "name": "nodeFeeVaultSpaceAmount",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            },
+            {
+                "name": "nodeFeeVaultUsdtAmountToMiner",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            },
+            {
+                "name": "nodeFeeVaultUsdtAmountToUsdtFeeReceiver",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
         "name": "FeeReceiversUpdated",
         "inputs": [
             {
@@ -1693,6 +1822,25 @@ export const miningAbi = [
     },
     {
         "type": "event",
+        "name": "FreeMinerClaimed",
+        "inputs": [
+            {
+                "name": "account",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "spaceAmount",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
         "name": "MinerPurchased",
         "inputs": [
             {
@@ -1718,6 +1866,12 @@ export const miningAbi = [
                 "type": "uint256",
                 "indexed": false,
                 "internalType": "uint256"
+            },
+            {
+                "name": "paymentToken",
+                "type": "uint8",
+                "indexed": false,
+                "internalType": "enum Mining.PaymentToken"
             },
             {
                 "name": "expectedReward",
@@ -1811,6 +1965,25 @@ export const miningAbi = [
     },
     {
         "type": "event",
+        "name": "UsdtFeeReceiverUpdated",
+        "inputs": [
+            {
+                "name": "oldUsdtFeeReceiver",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "newUsdtFeeReceiver",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
         "name": "UsdtWithdrawn",
         "inputs": [
             {
@@ -1874,6 +2047,11 @@ export const miningAbi = [
     },
     {
         "type": "error",
+        "name": "FreeMinerAlreadyClaimed",
+        "inputs": []
+    },
+    {
+        "type": "error",
         "name": "InvalidFee",
         "inputs": []
     },
@@ -1934,724 +2112,729 @@ export const miningAbi = [
                 "internalType": "address"
             }
         ]
+    },
+    {
+        "type": "error",
+        "name": "UsdtPurchaseSpaceLimitExceeded",
+        "inputs": []
     }
 ] as const satisfies Abi;
 
 export const mining = {
-    address: '0x545D4D27F09c590656d1Fff66A97bD8b5257bB21',
+    address: '0xDc93aD4F7338b0885c26C5F1a3E6b7CD9593501D',
     abi: miningAbi,
 } as const;
 
-export const nodeAbi = [
-    {
-        "type": "constructor",
-        "inputs": [
-            {
-                "name": "usdt_",
-                "type": "address",
-                "internalType": "address"
-            },
-            {
-                "name": "treasury_",
-                "type": "address",
-                "internalType": "address"
-            },
-            {
-                "name": "signer_",
-                "type": "address",
-                "internalType": "address"
-            }
-        ],
-        "stateMutability": "nonpayable"
-    },
-    {
-        "type": "function",
-        "name": "BPS_DENOMINATOR",
-        "inputs": [],
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint256",
-                "internalType": "uint256"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "REWARD_BPS",
-        "inputs": [],
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint256",
-                "internalType": "uint256"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "USDT",
-        "inputs": [],
-        "outputs": [
-            {
-                "name": "",
-                "type": "address",
-                "internalType": "contract IERC20"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "claimReward",
-        "inputs": [
-            {
-                "name": "amount",
-                "type": "uint256",
-                "internalType": "uint256"
-            },
-            {
-                "name": "nonce",
-                "type": "uint256",
-                "internalType": "uint256"
-            },
-            {
-                "name": "deadline",
-                "type": "uint256",
-                "internalType": "uint256"
-            },
-            {
-                "name": "signature",
-                "type": "bytes",
-                "internalType": "bytes"
-            }
-        ],
-        "outputs": [],
-        "stateMutability": "nonpayable"
-    },
-    {
-        "type": "function",
-        "name": "createLevel",
-        "inputs": [
-            {
-                "name": "name",
-                "type": "string",
-                "internalType": "string"
-            },
-            {
-                "name": "price",
-                "type": "uint256",
-                "internalType": "uint256"
-            },
-            {
-                "name": "enabled",
-                "type": "bool",
-                "internalType": "bool"
-            }
-        ],
-        "outputs": [],
-        "stateMutability": "nonpayable"
-    },
-    {
-        "type": "function",
-        "name": "getAllLevels",
-        "inputs": [],
-        "outputs": [
-            {
-                "name": "",
-                "type": "tuple[]",
-                "internalType": "struct NodeMembership.LevelConfig[]",
-                "components": [
-                    {
-                        "name": "name",
-                        "type": "string",
-                        "internalType": "string"
-                    },
-                    {
-                        "name": "price",
-                        "type": "uint256",
-                        "internalType": "uint256"
-                    },
-                    {
-                        "name": "enabled",
-                        "type": "bool",
-                        "internalType": "bool"
-                    }
-                ]
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "getUpgradeCost",
-        "inputs": [
-            {
-                "name": "userAddress",
-                "type": "address",
-                "internalType": "address"
-            },
-            {
-                "name": "targetLevelIndex",
-                "type": "uint256",
-                "internalType": "uint256"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint256",
-                "internalType": "uint256"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "getUserLevel",
-        "inputs": [
-            {
-                "name": "userAddress",
-                "type": "address",
-                "internalType": "address"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint256",
-                "internalType": "uint256"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "levels",
-        "inputs": [
-            {
-                "name": "",
-                "type": "uint256",
-                "internalType": "uint256"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "name",
-                "type": "string",
-                "internalType": "string"
-            },
-            {
-                "name": "price",
-                "type": "uint256",
-                "internalType": "uint256"
-            },
-            {
-                "name": "enabled",
-                "type": "bool",
-                "internalType": "bool"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "owner",
-        "inputs": [],
-        "outputs": [
-            {
-                "name": "",
-                "type": "address",
-                "internalType": "address"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "purchase",
-        "inputs": [
-            {
-                "name": "targetLevelIndex",
-                "type": "uint256",
-                "internalType": "uint256"
-            },
-            {
-                "name": "signature",
-                "type": "bytes",
-                "internalType": "bytes"
-            }
-        ],
-        "outputs": [],
-        "stateMutability": "nonpayable"
-    },
-    {
-        "type": "function",
-        "name": "purchasePaused",
-        "inputs": [],
-        "outputs": [
-            {
-                "name": "",
-                "type": "bool",
-                "internalType": "bool"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "renounceOwnership",
-        "inputs": [],
-        "outputs": [],
-        "stateMutability": "nonpayable"
-    },
-    {
-        "type": "function",
-        "name": "setPurchasePaused",
-        "inputs": [
-            {
-                "name": "paused",
-                "type": "bool",
-                "internalType": "bool"
-            }
-        ],
-        "outputs": [],
-        "stateMutability": "nonpayable"
-    },
-    {
-        "type": "function",
-        "name": "setSigner",
-        "inputs": [
-            {
-                "name": "newSigner",
-                "type": "address",
-                "internalType": "address"
-            }
-        ],
-        "outputs": [],
-        "stateMutability": "nonpayable"
-    },
-    {
-        "type": "function",
-        "name": "setTreasury",
-        "inputs": [
-            {
-                "name": "newTreasury",
-                "type": "address",
-                "internalType": "address"
-            }
-        ],
-        "outputs": [],
-        "stateMutability": "nonpayable"
-    },
-    {
-        "type": "function",
-        "name": "signer",
-        "inputs": [],
-        "outputs": [
-            {
-                "name": "",
-                "type": "address",
-                "internalType": "address"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "totalActivatedUsers",
-        "inputs": [],
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint256",
-                "internalType": "uint256"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "transferOwnership",
-        "inputs": [
-            {
-                "name": "newOwner",
-                "type": "address",
-                "internalType": "address"
-            }
-        ],
-        "outputs": [],
-        "stateMutability": "nonpayable"
-    },
-    {
-        "type": "function",
-        "name": "treasury",
-        "inputs": [],
-        "outputs": [
-            {
-                "name": "",
-                "type": "address",
-                "internalType": "address"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "upgrade",
-        "inputs": [
-            {
-                "name": "targetLevelIndex",
-                "type": "uint256",
-                "internalType": "uint256"
-            },
-            {
-                "name": "signature",
-                "type": "bytes",
-                "internalType": "bytes"
-            }
-        ],
-        "outputs": [],
-        "stateMutability": "nonpayable"
-    },
-    {
-        "type": "function",
-        "name": "usedClaimNonces",
-        "inputs": [
-            {
-                "name": "",
-                "type": "address",
-                "internalType": "address"
-            },
-            {
-                "name": "",
-                "type": "uint256",
-                "internalType": "uint256"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "",
-                "type": "bool",
-                "internalType": "bool"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "users",
-        "inputs": [
-            {
-                "name": "",
-                "type": "address",
-                "internalType": "address"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "activated",
-                "type": "bool",
-                "internalType": "bool"
-            },
-            {
-                "name": "levelIndex",
-                "type": "uint256",
-                "internalType": "uint256"
-            },
-            {
-                "name": "totalPaid",
-                "type": "uint256",
-                "internalType": "uint256"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "event",
-        "name": "LevelCreated",
-        "inputs": [
-            {
-                "name": "levelIndex",
-                "type": "uint256",
-                "indexed": true,
-                "internalType": "uint256"
-            },
-            {
-                "name": "name",
-                "type": "string",
-                "indexed": false,
-                "internalType": "string"
-            },
-            {
-                "name": "price",
-                "type": "uint256",
-                "indexed": false,
-                "internalType": "uint256"
-            },
-            {
-                "name": "enabled",
-                "type": "bool",
-                "indexed": false,
-                "internalType": "bool"
-            }
-        ],
-        "anonymous": false
-    },
-    {
-        "type": "event",
-        "name": "NodePurchased",
-        "inputs": [
-            {
-                "name": "user",
-                "type": "address",
-                "indexed": true,
-                "internalType": "address"
-            },
-            {
-                "name": "level",
-                "type": "uint256",
-                "indexed": true,
-                "internalType": "uint256"
-            },
-            {
-                "name": "amount",
-                "type": "uint256",
-                "indexed": false,
-                "internalType": "uint256"
-            },
-            {
-                "name": "rewardAmount",
-                "type": "uint256",
-                "indexed": false,
-                "internalType": "uint256"
-            }
-        ],
-        "anonymous": false
-    },
-    {
-        "type": "event",
-        "name": "OwnershipTransferred",
-        "inputs": [
-            {
-                "name": "previousOwner",
-                "type": "address",
-                "indexed": true,
-                "internalType": "address"
-            },
-            {
-                "name": "newOwner",
-                "type": "address",
-                "indexed": true,
-                "internalType": "address"
-            }
-        ],
-        "anonymous": false
-    },
-    {
-        "type": "event",
-        "name": "PurchasePausedSet",
-        "inputs": [
-            {
-                "name": "paused",
-                "type": "bool",
-                "indexed": false,
-                "internalType": "bool"
-            }
-        ],
-        "anonymous": false
-    },
-    {
-        "type": "event",
-        "name": "RewardClaimed",
-        "inputs": [
-            {
-                "name": "user",
-                "type": "address",
-                "indexed": true,
-                "internalType": "address"
-            },
-            {
-                "name": "amount",
-                "type": "uint256",
-                "indexed": false,
-                "internalType": "uint256"
-            },
-            {
-                "name": "nonce",
-                "type": "uint256",
-                "indexed": false,
-                "internalType": "uint256"
-            }
-        ],
-        "anonymous": false
-    },
-    {
-        "type": "event",
-        "name": "SignerUpdated",
-        "inputs": [
-            {
-                "name": "oldSigner",
-                "type": "address",
-                "indexed": true,
-                "internalType": "address"
-            },
-            {
-                "name": "newSigner",
-                "type": "address",
-                "indexed": true,
-                "internalType": "address"
-            }
-        ],
-        "anonymous": false
-    },
-    {
-        "type": "event",
-        "name": "TreasuryUpdated",
-        "inputs": [
-            {
-                "name": "oldTreasury",
-                "type": "address",
-                "indexed": true,
-                "internalType": "address"
-            },
-            {
-                "name": "newTreasury",
-                "type": "address",
-                "indexed": true,
-                "internalType": "address"
-            }
-        ],
-        "anonymous": false
-    },
-    {
-        "type": "error",
-        "name": "AlreadyActivated",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "InvalidLevel",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "InvalidSignature",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "InvalidSigner",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "InvalidTreasury",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "InvalidUpgrade",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "InvalidUsdt",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "LevelDisabled",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "NonceAlreadyUsed",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "NotActivated",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "OwnableInvalidOwner",
-        "inputs": [
-            {
-                "name": "owner",
-                "type": "address",
-                "internalType": "address"
-            }
-        ]
-    },
-    {
-        "type": "error",
-        "name": "OwnableUnauthorizedAccount",
-        "inputs": [
-            {
-                "name": "account",
-                "type": "address",
-                "internalType": "address"
-            }
-        ]
-    },
-    {
-        "type": "error",
-        "name": "PurchasePausedError",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "ReentrancyGuardReentrantCall",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "SafeERC20FailedOperation",
-        "inputs": [
-            {
-                "name": "token",
-                "type": "address",
-                "internalType": "address"
-            }
-        ]
-    },
-    {
-        "type": "error",
-        "name": "SignatureExpired",
-        "inputs": []
-    }
-] as const satisfies Abi;
+// export const nodeAbi = [
+//     {
+//         "type": "constructor",
+//         "inputs": [
+//             {
+//                 "name": "usdt_",
+//                 "type": "address",
+//                 "internalType": "address"
+//             },
+//             {
+//                 "name": "treasury_",
+//                 "type": "address",
+//                 "internalType": "address"
+//             },
+//             {
+//                 "name": "signer_",
+//                 "type": "address",
+//                 "internalType": "address"
+//             }
+//         ],
+//         "stateMutability": "nonpayable"
+//     },
+//     {
+//         "type": "function",
+//         "name": "BPS_DENOMINATOR",
+//         "inputs": [],
+//         "outputs": [
+//             {
+//                 "name": "",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             }
+//         ],
+//         "stateMutability": "view"
+//     },
+//     {
+//         "type": "function",
+//         "name": "REWARD_BPS",
+//         "inputs": [],
+//         "outputs": [
+//             {
+//                 "name": "",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             }
+//         ],
+//         "stateMutability": "view"
+//     },
+//     {
+//         "type": "function",
+//         "name": "USDT",
+//         "inputs": [],
+//         "outputs": [
+//             {
+//                 "name": "",
+//                 "type": "address",
+//                 "internalType": "contract IERC20"
+//             }
+//         ],
+//         "stateMutability": "view"
+//     },
+//     {
+//         "type": "function",
+//         "name": "claimReward",
+//         "inputs": [
+//             {
+//                 "name": "amount",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             },
+//             {
+//                 "name": "nonce",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             },
+//             {
+//                 "name": "deadline",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             },
+//             {
+//                 "name": "signature",
+//                 "type": "bytes",
+//                 "internalType": "bytes"
+//             }
+//         ],
+//         "outputs": [],
+//         "stateMutability": "nonpayable"
+//     },
+//     {
+//         "type": "function",
+//         "name": "createLevel",
+//         "inputs": [
+//             {
+//                 "name": "name",
+//                 "type": "string",
+//                 "internalType": "string"
+//             },
+//             {
+//                 "name": "price",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             },
+//             {
+//                 "name": "enabled",
+//                 "type": "bool",
+//                 "internalType": "bool"
+//             }
+//         ],
+//         "outputs": [],
+//         "stateMutability": "nonpayable"
+//     },
+//     {
+//         "type": "function",
+//         "name": "getAllLevels",
+//         "inputs": [],
+//         "outputs": [
+//             {
+//                 "name": "",
+//                 "type": "tuple[]",
+//                 "internalType": "struct NodeMembership.LevelConfig[]",
+//                 "components": [
+//                     {
+//                         "name": "name",
+//                         "type": "string",
+//                         "internalType": "string"
+//                     },
+//                     {
+//                         "name": "price",
+//                         "type": "uint256",
+//                         "internalType": "uint256"
+//                     },
+//                     {
+//                         "name": "enabled",
+//                         "type": "bool",
+//                         "internalType": "bool"
+//                     }
+//                 ]
+//             }
+//         ],
+//         "stateMutability": "view"
+//     },
+//     {
+//         "type": "function",
+//         "name": "getUpgradeCost",
+//         "inputs": [
+//             {
+//                 "name": "userAddress",
+//                 "type": "address",
+//                 "internalType": "address"
+//             },
+//             {
+//                 "name": "targetLevelIndex",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             }
+//         ],
+//         "outputs": [
+//             {
+//                 "name": "",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             }
+//         ],
+//         "stateMutability": "view"
+//     },
+//     {
+//         "type": "function",
+//         "name": "getUserLevel",
+//         "inputs": [
+//             {
+//                 "name": "userAddress",
+//                 "type": "address",
+//                 "internalType": "address"
+//             }
+//         ],
+//         "outputs": [
+//             {
+//                 "name": "",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             }
+//         ],
+//         "stateMutability": "view"
+//     },
+//     {
+//         "type": "function",
+//         "name": "levels",
+//         "inputs": [
+//             {
+//                 "name": "",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             }
+//         ],
+//         "outputs": [
+//             {
+//                 "name": "name",
+//                 "type": "string",
+//                 "internalType": "string"
+//             },
+//             {
+//                 "name": "price",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             },
+//             {
+//                 "name": "enabled",
+//                 "type": "bool",
+//                 "internalType": "bool"
+//             }
+//         ],
+//         "stateMutability": "view"
+//     },
+//     {
+//         "type": "function",
+//         "name": "owner",
+//         "inputs": [],
+//         "outputs": [
+//             {
+//                 "name": "",
+//                 "type": "address",
+//                 "internalType": "address"
+//             }
+//         ],
+//         "stateMutability": "view"
+//     },
+//     {
+//         "type": "function",
+//         "name": "purchase",
+//         "inputs": [
+//             {
+//                 "name": "targetLevelIndex",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             },
+//             {
+//                 "name": "signature",
+//                 "type": "bytes",
+//                 "internalType": "bytes"
+//             }
+//         ],
+//         "outputs": [],
+//         "stateMutability": "nonpayable"
+//     },
+//     {
+//         "type": "function",
+//         "name": "purchasePaused",
+//         "inputs": [],
+//         "outputs": [
+//             {
+//                 "name": "",
+//                 "type": "bool",
+//                 "internalType": "bool"
+//             }
+//         ],
+//         "stateMutability": "view"
+//     },
+//     {
+//         "type": "function",
+//         "name": "renounceOwnership",
+//         "inputs": [],
+//         "outputs": [],
+//         "stateMutability": "nonpayable"
+//     },
+//     {
+//         "type": "function",
+//         "name": "setPurchasePaused",
+//         "inputs": [
+//             {
+//                 "name": "paused",
+//                 "type": "bool",
+//                 "internalType": "bool"
+//             }
+//         ],
+//         "outputs": [],
+//         "stateMutability": "nonpayable"
+//     },
+//     {
+//         "type": "function",
+//         "name": "setSigner",
+//         "inputs": [
+//             {
+//                 "name": "newSigner",
+//                 "type": "address",
+//                 "internalType": "address"
+//             }
+//         ],
+//         "outputs": [],
+//         "stateMutability": "nonpayable"
+//     },
+//     {
+//         "type": "function",
+//         "name": "setTreasury",
+//         "inputs": [
+//             {
+//                 "name": "newTreasury",
+//                 "type": "address",
+//                 "internalType": "address"
+//             }
+//         ],
+//         "outputs": [],
+//         "stateMutability": "nonpayable"
+//     },
+//     {
+//         "type": "function",
+//         "name": "signer",
+//         "inputs": [],
+//         "outputs": [
+//             {
+//                 "name": "",
+//                 "type": "address",
+//                 "internalType": "address"
+//             }
+//         ],
+//         "stateMutability": "view"
+//     },
+//     {
+//         "type": "function",
+//         "name": "totalActivatedUsers",
+//         "inputs": [],
+//         "outputs": [
+//             {
+//                 "name": "",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             }
+//         ],
+//         "stateMutability": "view"
+//     },
+//     {
+//         "type": "function",
+//         "name": "transferOwnership",
+//         "inputs": [
+//             {
+//                 "name": "newOwner",
+//                 "type": "address",
+//                 "internalType": "address"
+//             }
+//         ],
+//         "outputs": [],
+//         "stateMutability": "nonpayable"
+//     },
+//     {
+//         "type": "function",
+//         "name": "treasury",
+//         "inputs": [],
+//         "outputs": [
+//             {
+//                 "name": "",
+//                 "type": "address",
+//                 "internalType": "address"
+//             }
+//         ],
+//         "stateMutability": "view"
+//     },
+//     {
+//         "type": "function",
+//         "name": "upgrade",
+//         "inputs": [
+//             {
+//                 "name": "targetLevelIndex",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             },
+//             {
+//                 "name": "signature",
+//                 "type": "bytes",
+//                 "internalType": "bytes"
+//             }
+//         ],
+//         "outputs": [],
+//         "stateMutability": "nonpayable"
+//     },
+//     {
+//         "type": "function",
+//         "name": "usedClaimNonces",
+//         "inputs": [
+//             {
+//                 "name": "",
+//                 "type": "address",
+//                 "internalType": "address"
+//             },
+//             {
+//                 "name": "",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             }
+//         ],
+//         "outputs": [
+//             {
+//                 "name": "",
+//                 "type": "bool",
+//                 "internalType": "bool"
+//             }
+//         ],
+//         "stateMutability": "view"
+//     },
+//     {
+//         "type": "function",
+//         "name": "users",
+//         "inputs": [
+//             {
+//                 "name": "",
+//                 "type": "address",
+//                 "internalType": "address"
+//             }
+//         ],
+//         "outputs": [
+//             {
+//                 "name": "activated",
+//                 "type": "bool",
+//                 "internalType": "bool"
+//             },
+//             {
+//                 "name": "levelIndex",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             },
+//             {
+//                 "name": "totalPaid",
+//                 "type": "uint256",
+//                 "internalType": "uint256"
+//             }
+//         ],
+//         "stateMutability": "view"
+//     },
+//     {
+//         "type": "event",
+//         "name": "LevelCreated",
+//         "inputs": [
+//             {
+//                 "name": "levelIndex",
+//                 "type": "uint256",
+//                 "indexed": true,
+//                 "internalType": "uint256"
+//             },
+//             {
+//                 "name": "name",
+//                 "type": "string",
+//                 "indexed": false,
+//                 "internalType": "string"
+//             },
+//             {
+//                 "name": "price",
+//                 "type": "uint256",
+//                 "indexed": false,
+//                 "internalType": "uint256"
+//             },
+//             {
+//                 "name": "enabled",
+//                 "type": "bool",
+//                 "indexed": false,
+//                 "internalType": "bool"
+//             }
+//         ],
+//         "anonymous": false
+//     },
+//     {
+//         "type": "event",
+//         "name": "NodePurchased",
+//         "inputs": [
+//             {
+//                 "name": "user",
+//                 "type": "address",
+//                 "indexed": true,
+//                 "internalType": "address"
+//             },
+//             {
+//                 "name": "level",
+//                 "type": "uint256",
+//                 "indexed": true,
+//                 "internalType": "uint256"
+//             },
+//             {
+//                 "name": "amount",
+//                 "type": "uint256",
+//                 "indexed": false,
+//                 "internalType": "uint256"
+//             },
+//             {
+//                 "name": "rewardAmount",
+//                 "type": "uint256",
+//                 "indexed": false,
+//                 "internalType": "uint256"
+//             }
+//         ],
+//         "anonymous": false
+//     },
+//     {
+//         "type": "event",
+//         "name": "OwnershipTransferred",
+//         "inputs": [
+//             {
+//                 "name": "previousOwner",
+//                 "type": "address",
+//                 "indexed": true,
+//                 "internalType": "address"
+//             },
+//             {
+//                 "name": "newOwner",
+//                 "type": "address",
+//                 "indexed": true,
+//                 "internalType": "address"
+//             }
+//         ],
+//         "anonymous": false
+//     },
+//     {
+//         "type": "event",
+//         "name": "PurchasePausedSet",
+//         "inputs": [
+//             {
+//                 "name": "paused",
+//                 "type": "bool",
+//                 "indexed": false,
+//                 "internalType": "bool"
+//             }
+//         ],
+//         "anonymous": false
+//     },
+//     {
+//         "type": "event",
+//         "name": "RewardClaimed",
+//         "inputs": [
+//             {
+//                 "name": "user",
+//                 "type": "address",
+//                 "indexed": true,
+//                 "internalType": "address"
+//             },
+//             {
+//                 "name": "amount",
+//                 "type": "uint256",
+//                 "indexed": false,
+//                 "internalType": "uint256"
+//             },
+//             {
+//                 "name": "nonce",
+//                 "type": "uint256",
+//                 "indexed": false,
+//                 "internalType": "uint256"
+//             }
+//         ],
+//         "anonymous": false
+//     },
+//     {
+//         "type": "event",
+//         "name": "SignerUpdated",
+//         "inputs": [
+//             {
+//                 "name": "oldSigner",
+//                 "type": "address",
+//                 "indexed": true,
+//                 "internalType": "address"
+//             },
+//             {
+//                 "name": "newSigner",
+//                 "type": "address",
+//                 "indexed": true,
+//                 "internalType": "address"
+//             }
+//         ],
+//         "anonymous": false
+//     },
+//     {
+//         "type": "event",
+//         "name": "TreasuryUpdated",
+//         "inputs": [
+//             {
+//                 "name": "oldTreasury",
+//                 "type": "address",
+//                 "indexed": true,
+//                 "internalType": "address"
+//             },
+//             {
+//                 "name": "newTreasury",
+//                 "type": "address",
+//                 "indexed": true,
+//                 "internalType": "address"
+//             }
+//         ],
+//         "anonymous": false
+//     },
+//     {
+//         "type": "error",
+//         "name": "AlreadyActivated",
+//         "inputs": []
+//     },
+//     {
+//         "type": "error",
+//         "name": "InvalidLevel",
+//         "inputs": []
+//     },
+//     {
+//         "type": "error",
+//         "name": "InvalidSignature",
+//         "inputs": []
+//     },
+//     {
+//         "type": "error",
+//         "name": "InvalidSigner",
+//         "inputs": []
+//     },
+//     {
+//         "type": "error",
+//         "name": "InvalidTreasury",
+//         "inputs": []
+//     },
+//     {
+//         "type": "error",
+//         "name": "InvalidUpgrade",
+//         "inputs": []
+//     },
+//     {
+//         "type": "error",
+//         "name": "InvalidUsdt",
+//         "inputs": []
+//     },
+//     {
+//         "type": "error",
+//         "name": "LevelDisabled",
+//         "inputs": []
+//     },
+//     {
+//         "type": "error",
+//         "name": "NonceAlreadyUsed",
+//         "inputs": []
+//     },
+//     {
+//         "type": "error",
+//         "name": "NotActivated",
+//         "inputs": []
+//     },
+//     {
+//         "type": "error",
+//         "name": "OwnableInvalidOwner",
+//         "inputs": [
+//             {
+//                 "name": "owner",
+//                 "type": "address",
+//                 "internalType": "address"
+//             }
+//         ]
+//     },
+//     {
+//         "type": "error",
+//         "name": "OwnableUnauthorizedAccount",
+//         "inputs": [
+//             {
+//                 "name": "account",
+//                 "type": "address",
+//                 "internalType": "address"
+//             }
+//         ]
+//     },
+//     {
+//         "type": "error",
+//         "name": "PurchasePausedError",
+//         "inputs": []
+//     },
+//     {
+//         "type": "error",
+//         "name": "ReentrancyGuardReentrantCall",
+//         "inputs": []
+//     },
+//     {
+//         "type": "error",
+//         "name": "SafeERC20FailedOperation",
+//         "inputs": [
+//             {
+//                 "name": "token",
+//                 "type": "address",
+//                 "internalType": "address"
+//             }
+//         ]
+//     },
+//     {
+//         "type": "error",
+//         "name": "SignatureExpired",
+//         "inputs": []
+//     }
+// ] as const satisfies Abi;
 
-export const node = {
-    address: '0x3fdbF4A7fa1d98086E9a716Ce5FabA3F0dE09327',
-    abi: nodeAbi,
-} as const;
+// export const node = {
+//     address: '0x3fdbF4A7fa1d98086E9a716Ce5FabA3F0dE09327',
+//     abi: nodeAbi,
+// } as const;
 
-export const spaceToken = '0xCB5BB9D61D69e41eEA52e6FC68CB03Ba69f79B3E';
+export const spaceToken = '0x3d45FB6B978d2923e2f06f25B5ac451Cf4Ca2A71';
 export const usdtToken = '0x55d398326f99059fF775485246999027B3197955';
-export const nodeFeeVault = '0xFabf66cF423990ddCe6E57aF1b495633aad0B172';
-export const vipFeeVault = '0x9Ab3508DCcc6007C373077EE9732f6bBc96670e5';
+export const nodeFeeVault = '0x610846B54a609D13a97308d40221ae38cD587213';
+export const vipFeeVault = '0xd1F342A65cA7Cf022CA9782D6A298899D351D910';
 
-// # 主网
-// # deployer 0x066B7CbB21ff2EaB8925825Dd41F2464ee15C31c
-// # signer 0xE15cF0225eAfdA5aA7e59F6Ab96ad2F01917D83a
-// # marker 0x4e57Aa5803805E7afb0CDfBBDfd77AD342AA0B10
-// # seedAccount 0x6eAFED2aEAF2B370A85fe624106f6465FB8A6Eda
-// # usdtToken 0x55d398326f99059fF775485246999027B3197955
-// # spaceToken 0xCB5BB9D61D69e41eEA52e6FC68CB03Ba69f79B3E
-// # vault 0x08837a54fE0edB6BAE6962D37ad5A9E158810A39
-// # nodeFeeVault 0xFabf66cF423990ddCe6E57aF1b495633aad0B172
-// # vipFeeVault 0x9Ab3508DCcc6007C373077EE9732f6bBc96670e5
-// # mining 0x545D4D27F09c590656d1Fff66A97bD8b5257bB21
-// # tokenExchange 0x19B7800Ea63E8948725A9A4494c74001e87be998
-// # minPrice 500000000000000000
-// # maxPrice 550000000000000000
-// # minOrderSpaceAmount 100000000000000000000
-// # exchangeNodeFeeBps 500
-// # exchangeMarkerFeeBps 500
-// # seedSpaceAmount 3600000000000000000000000
-// # vaultSpaceAmount 1196400000000000000000000000
+
+// #   deployer 0x066B7CbB21ff2EaB8925825Dd41F2464ee15C31c
+// #   signer 0xE15cF0225eAfdA5aA7e59F6Ab96ad2F01917D83a
+// #   marker 0x4e57Aa5803805E7afb0CDfBBDfd77AD342AA0B10
+// #   usdtToken 0x55d398326f99059fF775485246999027B3197955
+// #   spaceToken 0x3d45FB6B978d2923e2f06f25B5ac451Cf4Ca2A71
+// #   vault 0xb8F3f7b73447DF72a47A0a8807E41E12a31C279A
+// #   nodeFeeVault 0x610846B54a609D13a97308d40221ae38cD587213
+// #   vipFeeVault 0xd1F342A65cA7Cf022CA9782D6A298899D351D910
+// #   mining 0xDc93aD4F7338b0885c26C5F1a3E6b7CD9593501D
+// #   tokenExchange 0xa0050f443ae10B3bC8C6c25332aD3DBd5B0928Df
+// #   minPrice 500000000000000000
+// #   maxPrice 550000000000000000
+// #   minOrderSpaceAmount 1000000000000000000
+// #   exchangeNodeFeeBps 500
+// #   exchangeMarkerFeeBps 500
+// #   miningSpaceAmount 3600000000000000000000000
+// #   freeMinerSpaceAmount 200000000000000000000
+// #   vaultSpaceAmount 1196400000000000000000000000

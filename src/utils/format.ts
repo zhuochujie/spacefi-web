@@ -11,7 +11,7 @@ function trimTrailingZeros(value: string) {
     return value.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')
 }
 
-export function formatBigintAmount(value: bigint | string, options: FormatBigintOptions = {}) {
+export function formatBigintAmount(value: bigint | string | number | null | undefined, options: FormatBigintOptions = {}) {
     const {
         decimals = 18,
         fractionDigits = 2,
@@ -28,7 +28,11 @@ export function formatBigintAmount(value: bigint | string, options: FormatBigint
             return fallback
         }
 
-        const bigintValue = typeof value === 'bigint' ? value : BigInt(value)
+        const bigintValue = value === null || value === undefined
+            ? 0n
+            : typeof value === 'bigint'
+                ? value
+                : BigInt(value)
         const amount = formatUnits(bigintValue, decimals)
         const [integerPart, decimalPart = ''] = amount.split('.')
         const decimal = fractionDigits === undefined

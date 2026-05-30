@@ -200,11 +200,33 @@
     display: block;
 }
 
-.miner .info > span:nth-child(1) {
+.miner .info > span:nth-child(1),
+.miner_title {
     font-weight: 600;
     font-size: 14px;
     color: #F1F2F4;
     margin-bottom: 3px;
+}
+
+.miner .info > .miner_title {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    line-height: 1.3;
+}
+
+.miner .info > .miner_title > em {
+    display: inline-flex;
+    align-items: center;
+    height: 14px;
+    padding: 1px 5px;
+    color: #171B2B;
+    font-size: 8px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1.2;
+    background: linear-gradient(180deg, #FFE59A 0%, #FAC554 100%);
+    border-radius: 999px;
 }
 
 .miner .info > span:nth-child(2) {
@@ -256,6 +278,38 @@
     font-weight: 600;
     font-size: 10px;
     color: #ADB1BC;
+}
+
+.miner > .right > .free_price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    line-height: 1.1;
+}
+
+.miner > .right > .free_price > s {
+    color: #7F8BA8;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.miner > .right > .free_price > s > span {
+    color: #7F8BA8;
+    font-size: 8px;
+    font-weight: 500;
+}
+
+.miner > .right > .free_price > span {
+    color: #F1F2F4;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.miner > .right > .free_price > span > span {
+    color: #ADB1BC;
+    font-size: 10px;
+    font-weight: 600;
 }
 
 .miner > .right .buy {
@@ -321,6 +375,13 @@
 .payment_option > div > span:nth-child(2) {
     color: #96A5C5;
     font-size: 11px;
+}
+
+.payment_option > div > em {
+    color: #7F8BA8;
+    font-size: 10px;
+    font-style: normal;
+    line-height: 1.25;
 }
 
 .payment_active {

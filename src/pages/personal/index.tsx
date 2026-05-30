@@ -10,6 +10,7 @@ import { toast } from "react-hot-toast"
 import { clearAccessToken, getBalanceLogs, getLoginAddress, getMarketLatestPrice, getProfile, withdraw, withdrawUsdt, type BalanceLogType, type WithdrawToken } from "../../api"
 import Modal from "../../components/modal"
 import { getFriendlyErrorKey, useI18n } from "../../i18n"
+import { formatBigintAmount } from "../../utils/format"
 import { mining } from "../../web3/constants"
 import { wagmiConfig } from "../../web3/config"
 import styles from "./index.module.css"
@@ -21,6 +22,7 @@ import InvisibleIcon from "./images/invisible.svg"
 const balanceLogText: Record<BalanceLogType, string> = {
     miner_reward: 'logType.miner_reward',
     team_reward: 'logType.team_reward',
+    free_miner_claim: 'logType.free_miner_claim',
     miner_purchase: 'logType.miner_purchase',
     miner_purchase_refund: 'logType.miner_purchase_refund',
     withdraw: 'logType.withdraw',
@@ -35,16 +37,6 @@ function formatAddress(address?: string | null) {
     }
 
     return `${address.slice(0, 7)}...${address.slice(-5)}`
-}
-
-function formatAmount(value?: string, fractionDigits = 2) {
-    const amount = BigInt(value || '0')
-    const base = 10n ** 18n
-    const integer = amount / base
-    const fraction = amount % base
-    const fractionText = fraction.toString().padStart(18, '0').slice(0, fractionDigits)
-
-    return `${integer.toLocaleString()}${fractionDigits > 0 ? `.${fractionText}` : ''}`
 }
 
 function formatTime(timestamp: number) {
@@ -93,8 +85,8 @@ function PersonalPage() {
     })
     const displayAddress = profile?.address || getLoginAddress() || address
     const avatarSvg = multiavatar(displayAddress || 'space-user', true)
-    const spaceBalance = formatAmount(profile?.balance)
-    const usdtBalance = formatAmount(profile?.usdtBalance)
+    const spaceBalance = formatBigintAmount(profile?.balance)
+    const usdtBalance = formatBigintAmount(profile?.usdtBalance)
     const totalAssetValue = BigInt(profile?.usdtBalance || '0') + BigInt(profile?.balance || '0') * BigInt(latestPrice?.price || '0') / 10n ** 18n
     const balanceLogs = logsData?.list ?? []
     const withdrawAmountWei = parseAmountInput(withdrawAmount)
@@ -211,7 +203,7 @@ function PersonalPage() {
                             <img src={assetVisible ? VisibleIcon : InvisibleIcon} alt="" />
                         </button>
                     </div>
-                    <strong>{assetVisible ? `≈ ${formatAmount(totalAssetValue.toString())} USDT` : '******'}</strong>
+                    <strong>{assetVisible ? `≈ ${formatBigintAmount(totalAssetValue)} USDT` : '******'}</strong>
                 </div>
                 <div className={styles.token_grid}>
                     <div>
@@ -249,7 +241,7 @@ function PersonalPage() {
                                 <span>{t(balanceLogText[log.type])}</span>
                                 <em>{formatTime(log.createdAt)}</em>
                             </div>
-                            <strong>{assetVisible ? `${formatAmount(log.amount)} ${log.token}` : '***'}</strong>
+                            <strong>{assetVisible ? `${formatBigintAmount(log.amount, { fractionDigits: 5 })} ${log.token}` : '***'}</strong>
                         </div>
                     ))}
                 </div>

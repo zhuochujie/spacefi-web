@@ -7,7 +7,8 @@ import { getApiErrorKey, useI18n } from "../../i18n"
 import styles from "./index.module.css"
 
 const PAGE_SIZE = 12
-const REWARD_TYPES: BalanceLogType[] = ['miner_reward', 'team_reward']
+const REWARD_TYPES: BalanceLogType[] = ['miner_reward', 'free_miner_claim', 'team_reward']
+const MINER_REWARD_TYPES: BalanceLogType[] = ['miner_reward', 'free_miner_claim']
 
 type RewardFilter = 'all' | 'miner_reward' | 'team_reward'
 
@@ -42,7 +43,11 @@ function MinerRewardsPage() {
     const { t } = useI18n()
     const [filter, setFilter] = useState<RewardFilter>('all')
     const [page, setPage] = useState(1)
-    const queryTypes = filter === 'all' ? REWARD_TYPES : [filter]
+    const queryTypes = filter === 'all'
+        ? REWARD_TYPES
+        : filter === 'miner_reward'
+            ? MINER_REWARD_TYPES
+            : [filter]
     const {
         data,
         isLoading: loading,
@@ -89,7 +94,7 @@ function MinerRewardsPage() {
                                 <span>{t(getLogTitle(log))}</span>
                                 <em>{formatTime(log.createdAt)}</em>
                             </div>
-                            <strong>{formatBigintAmount(log.amount)} {log.token}</strong>
+                            <strong>{formatBigintAmount(log.amount, { fractionDigits: 5 })} {log.token}</strong>
                         </div>
                     </div>
                 ))}
