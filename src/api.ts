@@ -149,6 +149,10 @@ export type Notice = {
     content: string
     englishTitle?: string
     englishContent?: string
+    thaiTitle?: string
+    thaiContent?: string
+    koreanTitle?: string
+    koreanContent?: string
     createTime: number
 }
 

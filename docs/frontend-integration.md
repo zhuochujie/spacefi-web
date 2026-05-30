@@ -79,7 +79,6 @@ http://localhost:3000
 | `FREE_MINER_TX_FAILED` | 400 | 免费矿机领取交易失败 |
 | `FREE_MINER_EVENT_NOT_FOUND` | 400 | 交易 hash 中未找到免费矿机领取事件 |
 | `FREE_MINER_ACCOUNT_MISMATCH` | 400 | 免费矿机领取账户不匹配 |
-| `FREE_MINER_AMOUNT_MISMATCH` | 400 | 免费矿机领取数量不匹配 |
 | `FREE_MINER_NOT_FOUND` | 404 | 免费矿机不存在 |
 | `NO_FREE_MINER_REWARD_TO_CLAIM` | 409 | 没有可提取的免费矿机奖励 |
 | `FREE_MINER_CLAIM_LIMIT_REACHED` | 409 | 免费矿机奖励提取额度已用完 |
@@ -149,6 +148,10 @@ GET /notice/latest
     "content": "公告内容",
     "englishTitle": "Notice title",
     "englishContent": "Notice content",
+    "thaiTitle": "Notice title",
+    "thaiContent": "Notice content",
+    "koreanTitle": "Notice title",
+    "koreanContent": "Notice content",
     "createTime": 1710000000
   }
 }
@@ -189,6 +192,10 @@ Query：
         "content": "公告内容",
         "englishTitle": "Notice title",
         "englishContent": "Notice content",
+        "thaiTitle": "Notice title",
+        "thaiContent": "Notice content",
+        "koreanTitle": "Notice title",
+        "koreanContent": "Notice content",
         "createTime": 1710000000
       }
     ],
@@ -903,7 +910,7 @@ POST /miner/free/hash
 - 链上交易成功后，将交易 hash 提交给后端。
 - 后端异步读取 receipt 并解析 `FreeMinerClaimed` 事件。
 - 事件里的 `account` 必须等于当前登录用户地址。
-- 事件里的 `spaceAmount` 必须等于配置 `FREE_MINER_PRICE_WEI`。
+- 免费矿机的最大累计产出 `expectedReward` 以事件里的 `spaceAmount` 为准。
 - 校验通过后，后端创建免费矿机记录。
 
 ### 查询免费矿机 hash 处理状态

@@ -10,6 +10,8 @@ import { getAccountExists, getNonce, login, register, setAccessToken, setLoginAd
 import Modal from "../../components/modal"
 import LoadingLabel from "../../components/loading-label"
 
+const LANGUAGE_OPTIONS: AppLanguage[] = ['en', 'th', 'ko', 'zh']
+
 function getErrorMessage(error: unknown) {
     return error instanceof Error ? error.message : 'Login failed'
 }
@@ -27,6 +29,7 @@ function LoginPage() {
     const [message, setMessage] = useState('')
     const [refCodeInput, setRefCodeInput] = useState('')
     const [refCodeModalOpen, setRefCodeModalOpen] = useState(false)
+    const [languageOpen, setLanguageOpen] = useState(false)
     const refCodeResolver = useRef<((value: string) => void) | null>(null)
 
     const requestRefCode = (defaultRefCode = '') => {
@@ -104,17 +107,31 @@ function LoginPage() {
     return ( 
         <div className={styles.con}>
             <div className={styles.language_switch}>
-                <span>{t('login.language')}</span>
-                {(['zh', 'en'] as AppLanguage[]).map((item) => (
-                    <button
-                        className={language === item ? styles.language_active : ''}
-                        type="button"
-                        key={item}
-                        onClick={() => setLanguage(item)}
-                    >
-                        {item === 'zh' ? t('login.zh') : t('login.en')}
-                    </button>
-                ))}
+                <button
+                    className={styles.language_trigger}
+                    type="button"
+                    onClick={() => setLanguageOpen((open) => !open)}
+                >
+                    <span>{t(`login.${language}`)}</span>
+                    <em className={languageOpen ? styles.language_arrow_open : ''}>⌄</em>
+                </button>
+                {languageOpen && (
+                    <div className={styles.language_menu}>
+                        {LANGUAGE_OPTIONS.map((item) => (
+                            <button
+                                className={language === item ? styles.language_active : ''}
+                                type="button"
+                                key={item}
+                                onClick={() => {
+                                    setLanguage(item)
+                                    setLanguageOpen(false)
+                                }}
+                            >
+                                {t(`login.${item}`)}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
             <img className={styles.login_logo} src={LoginLogo} alt="Login logo" />
             <div className={styles.bottom}>

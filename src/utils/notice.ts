@@ -9,6 +9,20 @@ export function getLocalizedNotice(notice: Notice, language: AppLanguage) {
         }
     }
 
+    if (language === 'th') {
+        return {
+            title: notice.thaiTitle || notice.title,
+            content: notice.thaiContent || notice.content,
+        }
+    }
+
+    if (language === 'ko') {
+        return {
+            title: notice.koreanTitle || notice.title,
+            content: notice.koreanContent || notice.content,
+        }
+    }
+
     return {
         title: notice.title,
         content: notice.content,
