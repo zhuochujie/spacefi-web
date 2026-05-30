@@ -108,6 +108,17 @@ function IndexPage() {
         }),
         staleTime: 30_000,
     })
+    const { data: freeMinerClaimed } = useQuery({
+        queryKey: ['mining', 'claimed-free-miners', walletAddress],
+        queryFn: () => readContract(wagmiConfig, {
+            address: mining.address,
+            abi: mining.abi,
+            functionName: 'claimedFreeMiners',
+            args: [walletAddress as Address],
+        }),
+        enabled: Boolean(walletAddress),
+        staleTime: 30_000,
+    })
     const {
         data: paymentBalances,
         isLoading: balanceLoading,
@@ -427,6 +438,11 @@ function IndexPage() {
                 return
             }
 
+            if (freeMinerClaimed) {
+                toast.success(t('home.freeMinerClaimed'))
+                return
+            }
+
             setClaimingFreeMiner(true)
             const hash = await writeContract({
                 address: mining.address,
@@ -442,6 +458,7 @@ function IndexPage() {
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: ['miners', 'free', 'my'] }),
                 queryClient.invalidateQueries({ queryKey: ['miners', 'my'] }),
+                queryClient.invalidateQueries({ queryKey: ['mining', 'claimed-free-miners'] }),
                 queryClient.invalidateQueries({ queryKey: ['profile'] }),
             ])
             toast.success(t('home.claimFreeMinerSuccess'))
@@ -525,7 +542,7 @@ function IndexPage() {
                                 </div>
                                 <div>
                                     <span>{t('home.remaining')}</span>
-                                    <span>9999{t('common.units')}</span>
+                                    <span>MAX</span>
                                 </div>
                             </div>
                         </div>
@@ -536,10 +553,12 @@ function IndexPage() {
                             </span>
                             <button
                                 className={styles.buy}
-                                disabled={claimingFreeMiner}
+                                disabled={claimingFreeMiner || Boolean(freeMinerClaimed)}
                                 onClick={handleClaimFreeMiner}
                             >
-                                {claimingFreeMiner ? <LoadingLabel text={t('home.claimingFreeMiner')} /> : t('home.claimNow')}
+                                {claimingFreeMiner
+                                    ? <LoadingLabel text={t('home.claimingFreeMiner')} />
+                                    : freeMinerClaimed ? t('home.freeMinerClaimed') : t('home.claimNow')}
                             </button>
                         </div>
                     </div>
