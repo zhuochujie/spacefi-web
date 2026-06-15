@@ -10,12 +10,11 @@ import {
     getMarketOrders,
     getMarketOrder,
     getMarketStats24h,
-    submitMarketHash,
     type MarketOrder,
     type MarketOrderSide,
 } from "../../api"
 import { formatBigintAmount } from "../../utils/format"
-import { waitForMarketHash } from "../../utils/market"
+import { waitForMarketOrderTransaction, waitForMarketTradeTransaction } from "../../utils/market"
 import { getApiErrorKey, getFriendlyErrorKey, useI18n } from "../../i18n"
 import { market, spaceToken, usdtToken } from "../../web3/constants"
 import { wagmiConfig } from "../../web3/config"
@@ -51,7 +50,11 @@ function parseTokenInput(value: string) {
 }
 
 function createOrderIdSource() {
-    return String(Math.floor(1_000_000_000 + Math.random() * 9_000_000_000))
+    const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
+    return Array.from({ length: 6 }, () => (
+        characters[Math.floor(Math.random() * characters.length)]
+    )).join('')
 }
 
 function getUsdtAfterFee(
@@ -387,8 +390,7 @@ function MarketPage() {
             await waitForTransactionReceipt(wagmiConfig, {
                 hash,
             })
-            await submitMarketHash(hash)
-            await waitForMarketHash(hash)
+            await waitForMarketTradeTransaction(hash)
             await refreshMarketData()
             toast.success(`${t(actionKey)}${t('common.success')}`)
             closeOrderDialog()
@@ -444,8 +446,7 @@ function MarketPage() {
             await waitForTransactionReceipt(wagmiConfig, {
                 hash,
             })
-            await submitMarketHash(hash)
-            await waitForMarketHash(hash)
+            await waitForMarketOrderTransaction(hash)
             await refreshMarketData()
             toast.success(t('market.publishSuccess'))
             setIsPublishModalOpen(false)
@@ -476,7 +477,7 @@ function MarketPage() {
                 <div className={styles.market_stats}>
                     <div>
                         <span>{t('market.volume24h')}</span>
-                        <strong>{marketStats ? formatTokenAmount(marketStats.spaceVolume24h) : '0'}</strong>
+                        <strong>{marketStats ? formatTokenAmount(marketStats.totalSpaceAmount24h) : '0'}</strong>
                     </div>
                     <div>
                         <span>{t('market.avgPrice24h')}</span>
@@ -698,8 +699,9 @@ function MarketPage() {
                             <input
                                 value={privateCode}
                                 placeholder={t('market.privateCodeRequired')}
-                                inputMode="numeric"
-                                onChange={(event) => setPrivateCode(event.target.value)}
+                                inputMode="text"
+                                autoCapitalize="characters"
+                                onChange={(event) => setPrivateCode(event.target.value.toUpperCase())}
                             />
                         </div>
                     </label>

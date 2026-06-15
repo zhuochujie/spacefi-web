@@ -1137,7 +1137,7 @@ export const marketAbi = [
 ] as const satisfies Abi;
 
 export const market = {
-    address: '0xa0050f443ae10B3bC8C6c25332aD3DBd5B0928Df',
+    address: '0xA49e216D846f0428dDBF35E69334d8242B3A9d6a',
     abi: marketAbi,
 } as const;
 
@@ -1182,16 +1182,24 @@ export const miningAbi = [
                 "internalType": "address"
             },
             {
-                "name": "usdtPurchaseSpaceLimit_",
-                "type": "uint256",
-                "internalType": "uint256"
-            },
-            {
                 "name": "freeMinerSpaceAmount_",
                 "type": "uint256",
                 "internalType": "uint256"
             }
         ],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "addUsdtPurchaseSpaceQuota",
+        "inputs": [
+            {
+                "name": "amount",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "outputs": [],
         "stateMutability": "nonpayable"
     },
     {
@@ -1636,20 +1644,7 @@ export const miningAbi = [
     },
     {
         "type": "function",
-        "name": "usdtPurchaseSpaceLimit",
-        "inputs": [],
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint256",
-                "internalType": "uint256"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "usdtPurchasedSpaceAmount",
+        "name": "usdtPurchaseSpaceQuota",
         "inputs": [],
         "outputs": [
             {
@@ -2023,6 +2018,25 @@ export const miningAbi = [
     },
     {
         "type": "event",
+        "name": "UsdtPurchaseSpaceQuotaAdded",
+        "inputs": [
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            },
+            {
+                "name": "newQuota",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
         "name": "UsdtWithdrawn",
         "inputs": [
             {
@@ -2096,6 +2110,11 @@ export const miningAbi = [
     },
     {
         "type": "error",
+        "name": "InsufficientUsdtPurchaseSpaceQuota",
+        "inputs": []
+    },
+    {
+        "type": "error",
         "name": "InvalidFee",
         "inputs": []
     },
@@ -2117,6 +2136,11 @@ export const miningAbi = [
     {
         "type": "error",
         "name": "InvalidSigner",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "InvalidUsdtPurchaseSpaceQuota",
         "inputs": []
     },
     {
@@ -2156,16 +2180,11 @@ export const miningAbi = [
                 "internalType": "address"
             }
         ]
-    },
-    {
-        "type": "error",
-        "name": "UsdtPurchaseSpaceLimitExceeded",
-        "inputs": []
     }
 ] as const satisfies Abi;
 
 export const mining = {
-    address: '0xDc93aD4F7338b0885c26C5F1a3E6b7CD9593501D',
+    address: '0x3FdA44c9766C9A1B6f1014e83e46c07F3A1694Ab',
     abi: miningAbi,
 } as const;
 
@@ -2858,27 +2877,19 @@ export const mining = {
 //     abi: nodeAbi,
 // } as const;
 
-export const spaceToken = '0x3d45FB6B978d2923e2f06f25B5ac451Cf4Ca2A71';
-export const usdtToken = '0x55d398326f99059fF775485246999027B3197955';
-export const nodeFeeVault = '0x610846B54a609D13a97308d40221ae38cD587213';
-export const vipFeeVault = '0xd1F342A65cA7Cf022CA9782D6A298899D351D910';
+export const spaceToken = '0xb1CaE7D0f05413128eD9ac9e3c9cba7FCE865449';
+export const usdtToken = '0x000Eba5d7650F157712C4fa4Ed42eBdD6E68CcF4';
+export const nodeFeeVault = '0x21f5E2522be4909ECecdB88Ed83181110A6633D9';
+export const vipFeeVault = '0x97693cEC8Eaf686D4353691Eb7A277F7F466B3F1';
 
 
-// #   deployer 0x066B7CbB21ff2EaB8925825Dd41F2464ee15C31c
-// #   signer 0xE15cF0225eAfdA5aA7e59F6Ab96ad2F01917D83a
-// #   marker 0x4e57Aa5803805E7afb0CDfBBDfd77AD342AA0B10
-// #   usdtToken 0x55d398326f99059fF775485246999027B3197955
-// #   spaceToken 0x3d45FB6B978d2923e2f06f25B5ac451Cf4Ca2A71
-// #   vault 0xb8F3f7b73447DF72a47A0a8807E41E12a31C279A
-// #   nodeFeeVault 0x610846B54a609D13a97308d40221ae38cD587213
-// #   vipFeeVault 0xd1F342A65cA7Cf022CA9782D6A298899D351D910
-// #   mining 0xDc93aD4F7338b0885c26C5F1a3E6b7CD9593501D
-// #   tokenExchange 0xa0050f443ae10B3bC8C6c25332aD3DBd5B0928Df
-// #   minPrice 500000000000000000
-// #   maxPrice 550000000000000000
-// #   minOrderSpaceAmount 1000000000000000000
-// #   exchangeNodeFeeBps 500
-// #   exchangeMarkerFeeBps 500
-// #   miningSpaceAmount 3600000000000000000000000
-// #   freeMinerSpaceAmount 200000000000000000000
-// #   vaultSpaceAmount 1196400000000000000000000000
+//   deployer 0xF5000667E17Ca2208A653009306C02d7d94fD7d4
+//   signer 0x7789fFEA181d4Be54A1bCaA0F88D49907A3144b1
+//   marker 0xC4F470EDD4041F69d97c1476Cf0B7Ffb443C3A7B
+//   usdtToken 0x000Eba5d7650F157712C4fa4Ed42eBdD6E68CcF4
+//   spaceToken 0xb1CaE7D0f05413128eD9ac9e3c9cba7FCE865449
+//   vault 0xded94b734d583FD956Bc45443a2AB2a6ABfB3976
+//   nodeFeeVault 0x21f5E2522be4909ECecdB88Ed83181110A6633D9
+//   vipFeeVault 0x97693cEC8Eaf686D4353691Eb7A277F7F466B3F1
+//   mining 0x3FdA44c9766C9A1B6f1014e83e46c07F3A1694Ab
+//   tokenExchange 0xA49e216D846f0428dDBF35E69334d8242B3A9d6a

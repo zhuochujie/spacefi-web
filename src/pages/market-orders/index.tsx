@@ -2,12 +2,11 @@ import { useState } from "react"
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query"
 import { waitForTransactionReceipt } from "@wagmi/core"
 import { toast } from "react-hot-toast"
-import { useWriteContract } from "wagmi"
+import { useConnection, useWriteContract } from "wagmi"
 import {
     getMyMarketTakerTrades,
     getMyMarketOrders,
     getMyOpenMarketOrders,
-    submitMarketHash,
     type MarketOrder,
     type MarketOrderSide,
     type MarketOrderStatus,
@@ -16,7 +15,7 @@ import {
 } from "../../api"
 import PageHeader from "../../components/page-header"
 import { formatBigintAmount } from "../../utils/format"
-import { waitForMarketHash } from "../../utils/market"
+import { waitForMarketOrderStatus } from "../../utils/market"
 import { getApiErrorKey, getFriendlyErrorKey, useI18n } from "../../i18n"
 import { market } from "../../web3/constants"
 import { wagmiConfig } from "../../web3/config"
@@ -63,6 +62,7 @@ function formatTime(timestamp: number) {
 function MarketOrdersPage() {
     const queryClient = useQueryClient()
     const { t } = useI18n()
+    const { address } = useConnection()
     const { mutateAsync: writeContract } = useWriteContract()
     const [view, setView] = useState<OrderView>('open')
     const [side, setSide] = useState<SideFilter>('all')
@@ -75,17 +75,21 @@ function MarketOrdersPage() {
         isError,
         error,
     } = useQuery<PageData<MarketOrder> | PageData<MarketTakerTrade>>({
-        queryKey: ['market', 'my-orders', view, sideParam ?? 'all', page, PAGE_SIZE],
+        queryKey: ['market', 'my-orders', address, view, sideParam ?? 'all', page, PAGE_SIZE],
         queryFn: () => {
+            if (!address) {
+                return { list: [], total: 0, page, pageSize: PAGE_SIZE }
+            }
+
             if (view === 'open') {
-                return getMyOpenMarketOrders(page, PAGE_SIZE, sideParam)
+                return getMyOpenMarketOrders(address, page, PAGE_SIZE, sideParam)
             }
 
             if (view === 'taker') {
-                return getMyMarketTakerTrades(page, PAGE_SIZE, sideParam)
+                return getMyMarketTakerTrades(address, page, PAGE_SIZE, sideParam)
             }
 
-            return getMyMarketOrders(page, PAGE_SIZE, sideParam)
+            return getMyMarketOrders(address, page, PAGE_SIZE, sideParam)
         },
         placeholderData: keepPreviousData,
         staleTime: 10_000,
@@ -116,8 +120,7 @@ function MarketOrdersPage() {
             await waitForTransactionReceipt(wagmiConfig, {
                 hash,
             })
-            await submitMarketHash(hash)
-            await waitForMarketHash(hash)
+            await waitForMarketOrderStatus(order.id as `0x${string}`, 'cancelled')
             await refreshMarketData()
             toast.success(t('marketOrders.cancelSuccess'))
         } catch (error) {

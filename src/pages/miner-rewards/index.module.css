@@ -1,29 +1,51 @@
 .page {
     min-height: 100vh;
     padding: 16px;
-    background: #00081A;
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(180deg, rgba(0, 110, 255, 0.08) 0, transparent 220px),
+        #00081A;
+}
+
+.page::before {
+    content: "";
+    width: 100%;
+    height: 1px;
+    position: absolute;
+    top: 70px;
+    left: 0;
+    background: linear-gradient(90deg, transparent, rgba(83, 194, 255, 0.42), transparent);
+    pointer-events: none;
 }
 
 .tabs {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(111, 173, 255, 0.12);
+    border-radius: 8px;
+    background: rgba(5, 20, 45, 0.78);
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.03);
 }
 
 .tabs button {
-    height: 32px;
-    color: #96A5C5;
-    font-size: 12px;
-    border: 1px solid rgba(142, 190, 255, 0.14);
-    border-radius: 999px;
-    background: rgba(7, 21, 49, 0.62);
+    height: 30px;
+    color: #7587A8;
+    font-size: 11px;
+    font-weight: 600;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    transition: color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
 .tabs .active_tab {
-    color: #FFFFFF;
-    border-color: rgba(22, 134, 255, 0.46);
-    background: linear-gradient(180deg, rgba(19, 147, 248, 0.32), rgba(58, 88, 249, 0.18));
+    color: #F3FAFF;
+    background: linear-gradient(135deg, rgba(21, 172, 255, 0.46), rgba(57, 86, 240, 0.42));
+    box-shadow: 0 0 16px rgba(18, 137, 255, 0.2), inset 0 1px rgba(255, 255, 255, 0.14);
 }
 
 .list {
@@ -31,51 +53,118 @@
 }
 
 .item {
-    padding: 12px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(30, 57, 100, 0.9);
+    min-height: 64px;
+    padding: 12px 12px 12px 16px;
+    margin-bottom: 9px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(61, 112, 174, 0.3);
     border-radius: 8px;
-    background: rgba(7, 21, 49, 0.82);
+    background: linear-gradient(105deg, rgba(9, 29, 61, 0.92), rgba(4, 17, 40, 0.86));
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.025), 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+
+.item::after {
+    content: "";
+    width: 72px;
+    height: 72px;
+    position: absolute;
+    top: -45px;
+    right: -25px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.item_marker {
+    width: 3px;
+    height: 30px;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    border-radius: 0 3px 3px 0;
+}
+
+.miner_item .item_marker {
+    background: #28E0B0;
+    box-shadow: 0 0 10px rgba(40, 224, 176, 0.72);
+}
+
+.team_item .item_marker {
+    background: #F6C86D;
+    box-shadow: 0 0 10px rgba(246, 200, 109, 0.62);
+}
+
+.free_item .item_marker {
+    background: #58AFFF;
+    box-shadow: 0 0 10px rgba(88, 175, 255, 0.68);
 }
 
 .item_top {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 12px;
 }
 
-.item_top > div {
+.item_meta {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 6px;
     min-width: 0;
 }
 
-.item_top span {
-    color: #F1F2F4;
-    font-size: 14px;
-    font-weight: 600;
+.item_meta span {
+    color: #EAF3FF;
+    font-size: 13px;
+    font-weight: 650;
 }
 
-.item_top em {
-    color: #5A6886;
-    font-size: 11px;
+.item_meta em {
+    color: #607394;
+    font-size: 10px;
     font-style: normal;
 }
 
-.item_top strong {
-    color: #58DFA6;
-    font-size: 14px;
-    line-height: 1.4;
+.amount {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 5px;
+    min-width: 0;
     text-align: right;
+}
+
+.amount strong {
+    color: #4BE4B9;
+    font-size: 15px;
+    line-height: 1.3;
     white-space: nowrap;
+    text-shadow: 0 0 14px rgba(75, 228, 185, 0.2);
+}
+
+.team_item .amount strong {
+    color: #F6C86D;
+    text-shadow: 0 0 14px rgba(246, 200, 109, 0.18);
+}
+
+.free_item .amount strong {
+    color: #73BCFF;
+    text-shadow: 0 0 14px rgba(88, 175, 255, 0.2);
+}
+
+.amount em {
+    color: #8295B6;
+    font-size: 9px;
+    font-style: normal;
+    font-weight: 700;
 }
 
 .status {
-    padding: 40px 0;
-    color: #96A5C5;
-    font-size: 13px;
+    padding: 56px 0;
+    color: #7587A8;
+    font-size: 12px;
     text-align: center;
 }
 
@@ -83,28 +172,35 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 6px 0 20px;
+    gap: 12px;
+    padding: 10px 0 20px;
 }
 
 .pagination button {
     height: 28px;
+    min-width: 68px;
     padding: 0 12px;
-    color: #C8D7F2;
-    font-size: 12px;
-    border: 1px solid rgba(142, 190, 255, 0.18);
-    border-radius: 999px;
-    background: rgba(7, 21, 49, 0.86);
+    color: #AFC9F4;
+    font-size: 11px;
+    border: 1px solid rgba(75, 148, 240, 0.25);
+    border-radius: 6px;
+    background: rgba(7, 27, 59, 0.78);
+}
+
+.pagination button:not(:disabled):active {
+    border-color: rgba(57, 176, 255, 0.56);
+    background: rgba(13, 58, 111, 0.8);
 }
 
 .pagination button:disabled {
-    color: #4F5F7A;
-    border-color: rgba(142, 190, 255, 0.08);
+    color: #40506B;
+    border-color: rgba(92, 126, 175, 0.1);
+    background: rgba(5, 18, 39, 0.54);
 }
 
 .pagination span {
     min-width: 54px;
-    color: #96A5C5;
-    font-size: 12px;
+    color: #7085A8;
+    font-size: 11px;
     text-align: center;
 }

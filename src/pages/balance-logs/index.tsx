@@ -57,17 +57,25 @@ function BalanceLogsPage() {
                 {loading && <div className={styles.status}>{t('common.loading')}</div>}
                 {!loading && isError && <div className={styles.status}>{error instanceof Error ? t(getApiErrorKey(error.message)) : t('minerRewards.loadFailed')}</div>}
                 {!loading && !isError && logs.length === 0 && <div className={styles.status}>{t('personal.noBalanceLogs')}</div>}
-                {!loading && !isError && logs.map((log) => (
-                    <div className={styles.item} key={log.id}>
+                {!loading && !isError && logs.map((log) => {
+                    const isOutgoing = BigInt(log.amount || '0') < 0n
+
+                    return (
+                    <div className={`${styles.item} ${isOutgoing ? styles.outgoing : styles.incoming}`} key={log.id}>
+                        <span className={styles.item_marker} aria-hidden="true" />
                         <div className={styles.item_top}>
-                            <div>
+                            <div className={styles.item_meta}>
                                 <span>{t(balanceLogText[log.type])}</span>
                                 <em>{formatTime(log.createdAt)}</em>
                             </div>
-                            <strong>{formatBigintAmount(log.amount, { fractionDigits: 5 })} {log.token}</strong>
+                            <div className={styles.amount}>
+                                <strong>{formatBigintAmount(log.amount, { fractionDigits: 5 })}</strong>
+                                <em>{log.token}</em>
+                            </div>
                         </div>
                     </div>
-                ))}
+                    )
+                })}
             </div>
 
             <div className={styles.pagination}>

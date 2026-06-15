@@ -540,10 +540,6 @@ function IndexPage() {
                                     <span>{t('home.cycle')}</span>
                                     <span>35 {t('common.days')}</span>
                                 </div>
-                                <div>
-                                    <span>{t('home.remaining')}</span>
-                                    <span>MAX</span>
-                                </div>
                             </div>
                         </div>
                         <div className={styles.right}>
@@ -558,7 +554,7 @@ function IndexPage() {
                             >
                                 {claimingFreeMiner
                                     ? <LoadingLabel text={t('home.claimingFreeMiner')} />
-                                    : freeMinerClaimed ? t('home.freeMinerClaimed') : t('home.claimNow')}
+                                    : freeMinerClaimed ? t('home.owned') : t('home.claimNow')}
                             </button>
                         </div>
                     </div>
@@ -585,8 +581,8 @@ function IndexPage() {
                                     <span>{minerCycle ?? '--'} {t('common.days')}</span>
                                 </div>
                                 <div>
-                                    <span>{t('home.remaining')}</span>
-                                    <span>{miner.remainingQuantity}{t('common.units')}</span>
+                                    <span>{t('home.saleStatus')}</span>
+                                    <span>{miner.isPurchasable ? t('home.onSale') : t('home.notOnSale')}</span>
                                 </div>
                             </div>
                         </div>
@@ -594,10 +590,14 @@ function IndexPage() {
                             <span>{formatBigintAmount(miner.price)} <span>SPACE</span></span>
                             <button
                                 className={styles.buy}
-                                disabled={!miner.isPurchasable || Boolean(buyingMinerId)}
+                                disabled={miner.isOwned || !miner.isPurchasable || Boolean(buyingMinerId)}
                                 onClick={() => openPaymentModal(miner)}
                             >
-                                {buyingMinerId === miner.id ? <LoadingLabel text={t('common.processing')} /> : t('home.buy')}
+                                {miner.isOwned
+                                    ? t('home.owned')
+                                    : buyingMinerId === miner.id
+                                        ? <LoadingLabel text={t('common.processing')} />
+                                        : t('home.buy')}
                             </button>
                         </div>
                     </div>

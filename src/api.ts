@@ -1,6 +1,7 @@
 import { getApiErrorKey, translate } from './i18n'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+const MARKET_API_BASE_URL = import.meta.env.VITE_MARKET_API_BASE_URL || '/market-api'
 const ACCESS_TOKEN_KEY = 'space_access_token'
 const LOGIN_ADDRESS_KEY = 'space_login_address'
 
@@ -21,8 +22,8 @@ export type Miner = {
     price: string
     desc: string
     expectedReward: string
-    remainingQuantity: number
     isPurchasable: boolean
+    isOwned: boolean
 }
 
 export type MyMiner = {
@@ -117,6 +118,7 @@ export type TeamMember = {
 export type TeamData = {
     directList: TeamMember[]
     directCount: number
+    teamCount: number
     totalPerformance: string
 }
 
@@ -161,11 +163,12 @@ export type MarketOrderSide = 'buy' | 'sell'
 export type MarketOrderStatus = 'open' | 'filled' | 'cancelled'
 
 export type MarketStats24h = {
-    tradingVolume24h: string
-    spaceVolume24h: string
+    latestPrice: string | null
+    totalSpaceAmount24h: string
     averagePrice24h: string
-    tradeCount24h: string
-    since: number
+    tradeCount24h: number
+    from: number
+    to: number
 }
 
 export type MarketOrder = {
@@ -177,6 +180,8 @@ export type MarketOrder = {
     price: string
     status: MarketOrderStatus
     visible: boolean
+    transactionHash: `0x${string}`
+    logIndex: number
     createdAt: number
 }
 
@@ -209,12 +214,6 @@ export type MinerRewardStartAt = {
     minerRewardStartAt: number
 }
 
-export type MarketHashRecord = {
-    hash: `0x${string}`
-    eventCount: number
-    createdAt: number
-}
-
 export type FeeExemptClaim = {
     account: `0x${string}`
     exempt: boolean
@@ -232,8 +231,21 @@ export type WithdrawSignature = {
     signature: `0x${string}`
 }
 
+export type WithdrawFeeBps = {
+    vipFeeBp: string
+    nodeFeeBp: string
+    totalFeeBp: string
+}
+
 export type PageData<T> = {
     list: T[]
+    total: number
+    page: number
+    pageSize: number
+}
+
+type MarketItemsPageData<T> = {
+    items: T[]
     total: number
     page: number
     pageSize: number
@@ -299,6 +311,27 @@ export async function request<T>(path: string, options: RequestOptions = {}) {
         notifyAuthExpired()
         throw new Error(translate(result.message ? getApiErrorKey(result.message) : 'api.LOGIN_EXPIRED'))
     }
+
+    if (!response.ok || result.success === false) {
+        throw new Error(translate(result.message ? getApiErrorKey(result.message) : 'api.REQUEST_FAILED'))
+    }
+
+    return result.data as T
+}
+
+export async function marketRequest<T>(path: string, options: RequestInit = {}) {
+    const { headers, ...init } = options
+    const requestHeaders = new Headers(headers)
+
+    if (init.body && !requestHeaders.has('Content-Type')) {
+        requestHeaders.set('Content-Type', 'application/json')
+    }
+
+    const response = await fetch(`${MARKET_API_BASE_URL}${path}`, {
+        ...init,
+        headers: requestHeaders,
+    })
+    const result = await response.json() as ApiResponse<T>
 
     if (!response.ok || result.success === false) {
         throw new Error(translate(result.message ? getApiErrorKey(result.message) : 'api.REQUEST_FAILED'))
@@ -389,6 +422,12 @@ export function withdrawUsdt(amount: string) {
     })
 }
 
+export function getWithdrawFeeBps() {
+    return request<WithdrawFeeBps>('/account/withdraw-fee-bps', {
+        auth: true,
+    })
+}
+
 export function getMiners() {
     return request<Miner[]>('/miner', {
         auth: true,
@@ -463,19 +502,6 @@ export function getMinerNonce(nonce: string) {
     })
 }
 
-export function submitMarketHash(hash: `0x${string}`) {
-    return request<unknown>('/market/hash', {
-        method: 'POST',
-        body: JSON.stringify({ hash }),
-    })
-}
-
-export function getMarketHash(hash: `0x${string}`) {
-    return request<MarketHashRecord | null>(`/market/hash/${hash}`, {
-        auth: true,
-    })
-}
-
 export function getLatestNotice() {
     return request<Notice | null>('/notice/latest', {
         auth: true,
@@ -489,15 +515,16 @@ export function getNotices(page = 1, pageSize = 20) {
 }
 
 export function getMarketStats24h() {
-    return request<MarketStats24h>('/market/stats/24h', {
-        auth: true,
-    })
+    return marketRequest<MarketStats24h>('/stats/prices')
 }
 
-export function getMarketLatestPrice() {
-    return request<MarketLatestPrice>('/market/latest-price', {
-        auth: true,
-    })
+export async function getMarketLatestPrice() {
+    const stats = await getMarketStats24h()
+
+    return {
+        price: stats.latestPrice || '0',
+        trade: null,
+    } satisfies MarketLatestPrice
 }
 
 export function getMarketOrders(page = 1, pageSize = 8, side: MarketOrderSide) {
@@ -507,19 +534,31 @@ export function getMarketOrders(page = 1, pageSize = 8, side: MarketOrderSide) {
         side,
     })
 
-    return request<PageData<MarketOrder>>(`/market/orders?${params.toString()}`, {
-        auth: true,
-    })
+    return marketRequest<MarketItemsPageData<MarketOrder>>(`/orders/open?${params.toString()}`)
+        .then(({ items, ...data }) => ({ ...data, list: items }))
 }
 
 export function getMarketOrder(id: `0x${string}`) {
-    return request<MarketOrder | null>(`/market/orders/${id}`, {
-        auth: true,
+    return marketRequest<MarketOrder>(`/orders/${id}`).catch((error) => {
+        if (error instanceof Error && error.message === translate('api.ORDER_NOT_FOUND')) {
+            return null
+        }
+
+        throw error
     })
 }
 
-export function getMyOpenMarketOrders(page = 1, pageSize = 8, side?: MarketOrderSide) {
+export function getMarketOrdersByTransaction(hash: `0x${string}`) {
+    return marketRequest<{ items: MarketOrder[] }>(`/orders/by-transaction/${hash}`)
+}
+
+export function getMarketTradesByTransaction(hash: `0x${string}`) {
+    return marketRequest<{ items: MarketTakerTrade[] }>(`/trades/by-transaction/${hash}`)
+}
+
+export function getMyOpenMarketOrders(maker: string, page = 1, pageSize = 8, side?: MarketOrderSide) {
     const params = new URLSearchParams({
+        maker,
         page: String(page),
         pageSize: String(pageSize),
     })
@@ -528,13 +567,13 @@ export function getMyOpenMarketOrders(page = 1, pageSize = 8, side?: MarketOrder
         params.set('side', side)
     }
 
-    return request<PageData<MarketOrder>>(`/market/my-open-orders?${params.toString()}`, {
-        auth: true,
-    })
+    return marketRequest<MarketItemsPageData<MarketOrder>>(`/orders/mine/open?${params.toString()}`)
+        .then(({ items, ...data }) => ({ ...data, list: items }))
 }
 
-export function getMyMarketOrders(page = 1, pageSize = 8, side?: MarketOrderSide, status?: MarketOrderStatus) {
+export function getMyMarketOrders(maker: string, page = 1, pageSize = 8, side?: MarketOrderSide, status?: MarketOrderStatus) {
     const params = new URLSearchParams({
+        maker,
         page: String(page),
         pageSize: String(pageSize),
     })
@@ -547,13 +586,13 @@ export function getMyMarketOrders(page = 1, pageSize = 8, side?: MarketOrderSide
         params.set('status', status)
     }
 
-    return request<PageData<MarketOrder>>(`/market/my-orders?${params.toString()}`, {
-        auth: true,
-    })
+    return marketRequest<MarketItemsPageData<MarketOrder>>(`/orders/mine?${params.toString()}`)
+        .then(({ items, ...data }) => ({ ...data, list: items }))
 }
 
-export function getMyMarketTakerTrades(page = 1, pageSize = 8, side?: MarketOrderSide) {
+export function getMyMarketTakerTrades(taker: string, page = 1, pageSize = 8, side?: MarketOrderSide) {
     const params = new URLSearchParams({
+        taker,
         page: String(page),
         pageSize: String(pageSize),
     })
@@ -562,7 +601,5 @@ export function getMyMarketTakerTrades(page = 1, pageSize = 8, side?: MarketOrde
         params.set('side', side)
     }
 
-    return request<PageData<MarketTakerTrade>>(`/market/my-taker-trades?${params.toString()}`, {
-        auth: true,
-    })
+    return marketRequest<PageData<MarketTakerTrade>>(`/trades/mine?${params.toString()}`)
 }

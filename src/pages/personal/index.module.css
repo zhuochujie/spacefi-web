@@ -321,6 +321,23 @@
     font-weight: 600;
 }
 
+.withdraw_amount_label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.withdraw_amount_label em {
+    min-width: 0;
+    color: #7F8BA8;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 500;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
 .token_tabs {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -378,4 +395,23 @@
     color: #7F8BA8;
     font-size: 11px;
     line-height: 1.5;
+}
+
+.withdraw_fee_row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.withdraw_fee_row div {
+    min-width: 0;
+    color: #7F8BA8;
+    font-size: 11px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.withdraw_fee_row div:last-child {
+    text-align: right;
 }

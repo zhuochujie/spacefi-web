@@ -69,7 +69,7 @@ function TeamPage() {
             <div className={styles.summary}>
                 <div>
                     <span>{t('team.members')}</span>
-                    <strong>{data?.directCount ?? 0} {t('team.people')}</strong>
+                    <strong>{data?.teamCount ?? 0} {t('team.people')}</strong>
                 </div>
                 <div>
                     <span>{t('team.performance')}</span>

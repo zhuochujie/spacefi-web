@@ -32,7 +32,7 @@ http://localhost:3000
 {
   "success": false,
   "code": 400,
-  "message": "ORDER_NOT_FOUND",
+  "message": "ACCOUNT_NOT_FOUND",
   "timestamp": 1710000000000,
   "path": "/api/path"
 }
@@ -71,7 +71,6 @@ http://localhost:3000
 | `MINER_NOT_FOUND` | 404 | 矿机不存在 |
 | `MINER_NOT_EXPIRED` | 409 | 当前矿机未到期，不能复投 |
 | `PENDING_PURCHASE_SIGNATURE_EXISTS` | 409 | 已有待确认购买签名，不能更换支付方式 |
-| `MINER_OUT_OF_STOCK` | 409 | 矿机库存不足 |
 | `INVALID_PURCHASE_METHOD` | 400 | 购买方式错误 |
 | `USDT_PURCHASE_CLOSED` | 409 | USDT 购买已关闭 |
 | `FREE_MINER_ALREADY_CLAIMED` | 409 | 已领取免费矿机 |
@@ -85,23 +84,13 @@ http://localhost:3000
 | `RETRY_AFTER_5_MINUTES` | 409 | 请稍后重试 |
 | `INVALID_MINER_STATUS` | 500 | 矿机状态异常 |
 
-市场：
-
-| message | HTTP 状态码 | 说明 |
-| --- | --- | --- |
-| `ORDER_ALREADY_EXISTS` | 409 | 订单已存在 |
-| `ORDER_NOT_FOUND` | 404 | 订单不存在 |
-| `FILL_AMOUNT_EXCEEDS_REMAINING` | 409 | 成交数量超过订单剩余数量 |
-| `INVALID_ORDER_SIDE` | 400 | 订单方向错误 |
-| `INVALID_ORDER_STATUS` | 400 | 订单状态错误 |
-| `MARKET_EVENT_NOT_FOUND` | 400 | 交易 hash 中未找到市场订单事件 |
-
 配置 / 系统：
 
 | message | HTTP 状态码 | 说明 |
 | --- | --- | --- |
 | `INVALID_WITHDRAW_FEE_CONFIG` | 500 | 提现手续费配置错误 |
 | `CONFIG_NOT_FOUND` | 500 | 配置不存在 |
+| `CONFIG_NOT_ADMIN_EDITABLE` | 400 | 配置不允许后台修改 |
 | `INVALID_CONFIG_FORMAT` | 500 | 配置格式错误 |
 | `CONFIG_EXCEEDS_LIMIT` | 500 | 配置超过上限 |
 | `UNKNOWN_ERROR` | 500 | 未知服务端错误 |
@@ -373,6 +362,31 @@ GET /account/commission-level
 }
 ```
 
+### 查询提现手续费 BP
+
+授权：需要登录。
+
+```http
+GET /account/withdraw-fee-bps
+```
+
+返回：
+
+```json
+{
+  "data": {
+    "vipFeeBp": "1200",
+    "nodeFeeBp": "300",
+    "totalFeeBp": "1500"
+  }
+}
+```
+
+说明：
+
+- BP 为万分比，`10000` 表示 100%。
+- `totalFeeBp = vipFeeBp + nodeFeeBp`。
+
 ### 查询资金记录
 
 授权：需要登录。
@@ -436,7 +450,7 @@ free_miner_claim
 GET /account/team
 ```
 
-返回直推列表，以及每个直推分支业绩。分支业绩包括直推本人和直推下面团队成员的购买矿机 `price` 总和。
+返回团队总人数、直推列表，以及每个直推分支业绩。团队总人数包括所有层级下级，不包含自己；分支业绩包括直推本人和直推下面团队成员的购买矿机 `price` 总和。
 
 ```json
 {
@@ -452,6 +466,7 @@ GET /account/team
       }
     ],
     "directCount": 1,
+    "teamCount": 10,
     "totalPerformance": "3000000000000000000000"
   }
 }
@@ -473,40 +488,6 @@ POST /account/sync-node-level
 {
   "data": 4
 }
-```
-
-### 领取市场手续费免除签名
-
-授权：需要登录。
-
-```http
-POST /account/claim-fee-exempt
-```
-
-要求：当前用户 `nodeLevel >= 4`。
-
-返回：
-
-```json
-{
-  "data": {
-    "account": "0x...",
-    "exempt": true,
-    "nonce": "0",
-    "signature": "0x..."
-  }
-}
-```
-
-说明：
-
-- `nonce` 来自市场合约 `feeExemptNonces(account)`。
-- 后端签名 digest 包含 `account`、`exempt` 和当前链上 `nonce`。
-
-前端拿到后调用市场合约：
-
-```ts
-setFeeExempt(account, true, signature)
 ```
 
 ### 生成提现签名
@@ -616,12 +597,14 @@ GET /miner
       "price": "100000000000000000000",
       "desc": "miner.desc.SPACE_100",
       "expectedReward": "500000000000000000000",
-      "remainingQuantity": 100,
-      "isPurchasable": true
+      "isPurchasable": true,
+      "isOwned": true
     }
   ]
 }
 ```
+
+`isOwned` 表示当前用户是否曾经拥有该矿机。即使矿机已经出局，只要存在对应的用户矿机记录，仍返回 `true`。
 
 矿机描述 i18n key：
 
@@ -668,7 +651,6 @@ GET /miner/my
           "price": "100000000000000000000",
           "desc": "miner.desc.SPACE_100",
           "expectedReward": "500000000000000000000",
-          "remainingQuantity": 99,
           "isPurchasable": true
         }
       }
@@ -1030,345 +1012,6 @@ POST /miner/free/claim-reward
 }
 ```
 
-## 市场
-
-### 提交市场交易 hash
-
-授权：公开。
-
-```http
-POST /market/hash
-```
-
-请求体：
-
-```json
-{
-  "hash": "0x..."
-}
-```
-
-说明：
-
-- 交易 hash 必须是 `0x` + 64 位小写 hex。
-- 后端会异步解析 `OrderPlaced`、`OrderFilled`、`OrderCancelled` 事件。
-
-### 查询市场 hash 处理状态
-
-授权：需要登录。
-
-```http
-GET /market/hash/:hash
-```
-
-参数：
-
-| 参数 | 位置 | 说明 |
-| --- | --- | --- |
-| `hash` | path | 市场订单相关链上交易 hash |
-
-返回：
-
-```json
-{
-  "data": {
-    "hash": "0x...",
-    "eventCount": 1,
-    "createdAt": 1710000000
-  }
-}
-```
-
-如果没有查到：
-
-```json
-{
-  "data": null
-}
-```
-
-说明：
-
-- `data = null`：后端还没有处理完成，前端可以继续轮询。
-- `data.eventCount > 0`：后端已经解析事件并写入数据库。
-
-### 查询 24 小时市场统计
-
-授权：需要登录。
-
-```http
-GET /market/stats/24h
-```
-
-返回：
-
-```json
-{
-  "data": {
-    "tradingVolume24h": "100000000000000000000",
-    "spaceVolume24h": "1000000000000000000",
-    "averagePrice24h": "100000000000000000000",
-    "tradeCount24h": "3",
-    "since": 1710000000
-  }
-}
-```
-
-说明：
-
-- `tradingVolume24h`：最近 24 小时成交额，来自 `OrderFilled.usdtAmount` 求和。
-- `spaceVolume24h`：最近 24 小时成交 SPACE 数量，来自 `OrderFilled.spaceAmount` 求和。
-- `averagePrice24h`：最近 24 小时加权平均成交价，计算方式为 `tradingVolume24h * 1e18 / spaceVolume24h`。
-- `tradeCount24h`：最近 24 小时成交事件数量。
-- 24 小时窗口按链上成交所在区块时间 `filledAt` 计算。
-
-### 查询最新成交价格
-
-授权：需要登录。
-
-```http
-GET /market/latest-price
-```
-
-返回：
-
-```json
-{
-  "data": {
-    "price": "1000000000000000000",
-    "trade": {
-      "id": "0x...-12",
-      "orderId": "0x...",
-      "maker": "0x...",
-      "taker": "0x...",
-      "side": "sell",
-      "spaceAmount": "1000000000000000000",
-      "price": "1000000000000000000",
-      "usdtAmount": "1000000000000000000",
-      "nodeFee": "0",
-      "markerFee": "0",
-      "transactionHash": "0x...",
-      "logIndex": 12,
-      "filledAt": 1710000000
-    }
-  }
-}
-```
-
-如果还没有成交记录：
-
-```json
-{
-  "data": {
-    "price": "0",
-    "trade": null
-  }
-}
-```
-
-说明：
-
-- `price` 是最新一笔成交记录的成交价格，来自 `OrderFilled.price`。
-- 最新成交按 `filledAt DESC, id DESC` 排序。
-
-### 查询当前挂单
-
-授权：需要登录。
-
-```http
-GET /market/orders?page=1&pageSize=20&side=buy
-```
-
-Query：
-
-| 参数 | 必填 | 说明 |
-| --- | --- | --- |
-| `page` | 否 | 默认 `1` |
-| `pageSize` | 否 | 默认 `20`，最大 `100` |
-| `side` | 是 | `buy` 或 `sell` |
-
-返回：
-
-```json
-{
-  "data": {
-    "list": [
-      {
-        "id": "0x...",
-        "maker": "0x...",
-        "side": "buy",
-        "spaceAmount": "1000000000000000000",
-        "remainingSpaceAmount": "1000000000000000000",
-        "price": "1000000000000000000",
-        "status": "open",
-        "visible": true,
-        "createdAt": 1710000000
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 20
-  }
-}
-```
-
-### 查询我的未成交完挂单
-
-授权：需要登录。
-
-```http
-GET /market/my-open-orders?page=1&pageSize=20&side=buy
-```
-
-Query：
-
-| 参数 | 必填 | 说明 |
-| --- | --- | --- |
-| `page` | 否 | 默认 `1` |
-| `pageSize` | 否 | 默认 `20`，最大 `100` |
-| `side` | 否 | `buy` 或 `sell` |
-
-说明：
-
-- 只返回当前用户 `maker = 当前登录地址` 且 `status = open` 的订单。
-- 会返回当前用户自己的 `visible = false` 订单。
-
-返回结构同 `GET /market/orders`。
-
-### 查询我的订单历史
-
-授权：需要登录。
-
-```http
-GET /market/my-orders?page=1&pageSize=20&side=buy&status=open
-```
-
-Query：
-
-| 参数 | 必填 | 说明 |
-| --- | --- | --- |
-| `page` | 否 | 默认 `1` |
-| `pageSize` | 否 | 默认 `20`，最大 `100` |
-| `side` | 否 | `buy` 或 `sell` |
-| `status` | 否 | `open`、`filled`、`cancelled` |
-
-说明：
-
-- 返回当前用户作为 maker 创建过的订单。
-- 不传 `status` 时返回全部状态订单。
-- 可用于“我的订单 / 订单历史”页面。
-
-返回结构同 `GET /market/orders`。
-
-### 查询我的吃单记录
-
-授权：需要登录。
-
-```http
-GET /market/my-taker-trades?page=1&pageSize=20&side=sell
-```
-
-Query：
-
-| 参数 | 必填 | 说明 |
-| --- | --- | --- |
-| `page` | 否 | 默认 `1` |
-| `pageSize` | 否 | 默认 `20`，最大 `100` |
-| `side` | 否 | 被吃订单方向，`buy` 或 `sell` |
-
-说明：
-
-- 返回当前用户作为 taker 的成交记录。
-- `side` 表示被成交订单的方向。例如用户吃卖单买入 SPACE 时，记录里的 `side = sell`。
-
-返回：
-
-```json
-{
-  "data": {
-    "list": [
-      {
-        "id": "0x...-12",
-        "orderId": "0x...",
-        "maker": "0x...",
-        "taker": "0x...",
-        "side": "sell",
-        "spaceAmount": "1000000000000000000",
-        "price": "1000000000000000000",
-        "usdtAmount": "1000000000000000000",
-        "nodeFee": "0",
-        "markerFee": "0",
-        "transactionHash": "0x...",
-        "logIndex": 12,
-        "filledAt": 1710000000
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 20
-  }
-}
-```
-
-### 根据订单号查询订单
-
-授权：需要登录。
-
-```http
-GET /market/orders/:id
-```
-
-参数：
-
-| 参数 | 位置 | 说明 |
-| --- | --- | --- |
-| `id` | path | `bytes32` 订单号，`0x` + 64 位 hex |
-
-说明：该接口可以查询 `visible = false` 的订单。
-
-### 链上市场调用提示
-
-市场订单号现在是 `bytes32`，链上计算方式是：
-
-```solidity
-keccak256(bytes(orderIdSource))
-```
-
-前端使用 `viem` 本地生成即可，不需要读合约：
-
-```ts
-import { keccak256, stringToBytes } from 'viem';
-
-const orderId = keccak256(stringToBytes(orderIdSource));
-```
-
-注意：`orderIdSource` 必须保持完全一致，大小写、空格、拼接符变化都会生成不同的 `orderId`。
-
-创建订单：
-
-```ts
-placeBuyOrder(orderId, spaceAmount, price, visible)
-placeSellOrder(orderId, spaceAmount, price, visible)
-```
-
-成交订单：
-
-```ts
-fillOrder(orderId, spaceAmount, orderIdSource)
-```
-
-取消订单：
-
-```ts
-cancelOrder(orderId)
-```
-
-链上交易成功后，把交易 hash 提交到：
-
-```http
-POST /market/hash
-```
-
 ## 前端推荐流程
 
 ### 登录流程
@@ -1402,12 +1045,3 @@ POST /market/hash
 2. 前端调用链上 `claim(...)`。
 3. 后端定时任务自动确认 nonce 是否已使用。
 4. 刷新 `GET /auth/profile` 和 `GET /account/balance-logs`。
-
-### 市场订单流程
-
-1. 前端生成或准备 `orderIdSource`。
-2. 调链上 `getOrderId(orderIdSource)` 得到 `bytes32 orderId`。
-3. 调链上 `placeBuyOrder` / `placeSellOrder` / `fillOrder` / `cancelOrder`。
-4. 交易成功后 `POST /market/hash`。
-5. 轮询 `GET /market/hash/:hash`。
-6. 查到处理记录后刷新 `GET /market/orders`、`GET /market/my-open-orders`、`GET /market/my-orders` 或 `GET /market/orders/:id`。

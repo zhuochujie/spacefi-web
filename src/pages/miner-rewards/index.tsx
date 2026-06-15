@@ -18,10 +18,16 @@ const filterOptions: Array<{ labelKey: string; value: RewardFilter }> = [
     { labelKey: 'logType.team_reward', value: 'team_reward' },
 ]
 
-const typeLabel: Record<RewardFilter, string> = {
-    all: 'minerRewards.all',
+const typeLabel: Record<BalanceLogType, string> = {
     miner_reward: 'logType.miner_reward',
     team_reward: 'logType.team_reward',
+    free_miner_claim: 'logType.free_miner_claim',
+    miner_purchase: 'logType.miner_purchase',
+    miner_purchase_refund: 'logType.miner_purchase_refund',
+    withdraw: 'logType.withdraw',
+    withdraw_refund: 'logType.withdraw_refund',
+    vip_dividend: 'logType.vip_dividend',
+    node_dividend: 'logType.node_dividend',
 }
 
 function formatTime(timestamp: number) {
@@ -36,7 +42,7 @@ function formatTime(timestamp: number) {
 }
 
 function getLogTitle(log: BalanceLog) {
-    return log.type === 'team_reward' ? typeLabel.team_reward : typeLabel.miner_reward
+    return typeLabel[log.type]
 }
 
 function MinerRewardsPage() {
@@ -88,13 +94,26 @@ function MinerRewardsPage() {
                 {!loading && isError && <div className={styles.status}>{error instanceof Error ? t(getApiErrorKey(error.message)) : t('minerRewards.loadFailed')}</div>}
                 {!loading && !isError && logs.length === 0 && <div className={styles.status}>{t('minerRewards.empty')}</div>}
                 {!loading && !isError && logs.map((log) => (
-                    <div className={styles.item} key={log.id}>
+                    <div
+                        className={`${styles.item} ${
+                            log.type === 'team_reward'
+                                ? styles.team_item
+                                : log.type === 'free_miner_claim'
+                                    ? styles.free_item
+                                    : styles.miner_item
+                        }`}
+                        key={log.id}
+                    >
+                        <span className={styles.item_marker} aria-hidden="true" />
                         <div className={styles.item_top}>
-                            <div>
+                            <div className={styles.item_meta}>
                                 <span>{t(getLogTitle(log))}</span>
                                 <em>{formatTime(log.createdAt)}</em>
                             </div>
-                            <strong>{formatBigintAmount(log.amount, { fractionDigits: 5 })} {log.token}</strong>
+                            <div className={styles.amount}>
+                                <strong>{formatBigintAmount(log.amount, { fractionDigits: 5 })}</strong>
+                                <em>{log.token}</em>
+                            </div>
                         </div>
                     </div>
                 ))}

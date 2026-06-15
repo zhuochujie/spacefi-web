@@ -7,7 +7,7 @@ import { parseUnits } from "viem"
 import multiavatar from "@multiavatar/multiavatar"
 import copy from "copy-to-clipboard"
 import { toast } from "react-hot-toast"
-import { clearAccessToken, getBalanceLogs, getLoginAddress, getMarketLatestPrice, getProfile, withdraw, withdrawUsdt, type BalanceLogType, type WithdrawToken } from "../../api"
+import { clearAccessToken, getBalanceLogs, getLoginAddress, getMarketLatestPrice, getProfile, getWithdrawFeeBps, withdraw, withdrawUsdt, type BalanceLogType, type WithdrawToken } from "../../api"
 import Modal from "../../components/modal"
 import { getFriendlyErrorKey, useI18n } from "../../i18n"
 import { formatBigintAmount } from "../../utils/format"
@@ -57,6 +57,20 @@ function parseAmountInput(value: string) {
     }
 }
 
+function getWithdrawFee(amount: bigint, totalFeeBp: string | undefined) {
+    if (amount <= 0n) {
+        return 0n
+    }
+
+    const feeBp = BigInt(totalFeeBp || '0')
+
+    if (feeBp <= 0n) {
+        return 0n
+    }
+
+    return amount * feeBp / 10_000n
+}
+
 function PersonalPage() {
     const navigate = useNavigate()
     const queryClient = useQueryClient()
@@ -83,6 +97,12 @@ function PersonalPage() {
         queryFn: getMarketLatestPrice,
         staleTime: 20_000,
     })
+    const { data: withdrawFeeBps } = useQuery({
+        queryKey: ['withdraw-fee-bps'],
+        queryFn: getWithdrawFeeBps,
+        enabled: withdrawOpen && withdrawToken === 'SPACE',
+        staleTime: 60_000,
+    })
     const displayAddress = profile?.address || getLoginAddress() || address
     const avatarSvg = multiavatar(displayAddress || 'space-user', true)
     const spaceBalance = formatBigintAmount(profile?.balance)
@@ -91,7 +111,10 @@ function PersonalPage() {
     const balanceLogs = logsData?.list ?? []
     const withdrawAmountWei = parseAmountInput(withdrawAmount)
     const withdrawBalanceWei = BigInt(withdrawToken === 'SPACE' ? profile?.balance || '0' : profile?.usdtBalance || '0')
-    const isWithdrawAmountValid = withdrawAmountWei > 0n && withdrawAmountWei <= withdrawBalanceWei
+    const withdrawFeeWei = withdrawToken === 'SPACE' ? getWithdrawFee(withdrawAmountWei, withdrawFeeBps?.totalFeeBp) : 0n
+    const withdrawReceiveWei = withdrawAmountWei > withdrawFeeWei ? withdrawAmountWei - withdrawFeeWei : 0n
+    const withdrawRequiredWei = withdrawAmountWei + withdrawFeeWei
+    const isWithdrawAmountValid = withdrawAmountWei > 0n && withdrawRequiredWei <= withdrawBalanceWei
 
     const handleLogout = () => {
         clearAccessToken()
@@ -284,7 +307,10 @@ function PersonalPage() {
                         </div>
                     </label>
                     <label>
-                        <span>{t('personal.withdrawAmount')}</span>
+                        <span className={styles.withdraw_amount_label}>
+                            {t('personal.withdrawAmount')}
+                            <em>{t('common.availablePrefix')}{withdrawToken === 'SPACE' ? spaceBalance : usdtBalance} {withdrawToken}</em>
+                        </span>
                         <div className={styles.withdraw_input}>
                             <input
                                 value={withdrawAmount}
@@ -295,9 +321,16 @@ function PersonalPage() {
                             <em>{withdrawToken}</em>
                         </div>
                     </label>
-                    <div className={styles.withdraw_balance}>
-                        {t('common.availablePrefix')}{withdrawToken === 'SPACE' ? spaceBalance : usdtBalance} {withdrawToken}
-                    </div>
+                    {withdrawToken === 'SPACE' && (
+                        <div className={styles.withdraw_fee_row}>
+                            <div>
+                                {t('personal.withdrawFee')}{formatBigintAmount(withdrawFeeWei)} SPACE
+                            </div>
+                            <div>
+                                {t('personal.withdrawReceive')}{formatBigintAmount(withdrawReceiveWei)} SPACE
+                            </div>
+                        </div>
+                    )}
                 </div>
             </Modal>
         </div>
