@@ -1137,7 +1137,7 @@ export const marketAbi = [
 ] as const satisfies Abi;
 
 export const market = {
-    address: '0xA49e216D846f0428dDBF35E69334d8242B3A9d6a',
+    address: '0x0a5304AB6e0857cBd75242C3eFdF0321A41C917B',
     abi: marketAbi,
 } as const;
 
@@ -2184,7 +2184,7 @@ export const miningAbi = [
 ] as const satisfies Abi;
 
 export const mining = {
-    address: '0x3FdA44c9766C9A1B6f1014e83e46c07F3A1694Ab',
+    address: '0x17D31806bD6D7a96bEBF242D26420D1F8405A74b',
     abi: miningAbi,
 } as const;
 
@@ -2877,19 +2877,18 @@ export const mining = {
 //     abi: nodeAbi,
 // } as const;
 
-export const spaceToken = '0xb1CaE7D0f05413128eD9ac9e3c9cba7FCE865449';
-export const usdtToken = '0x000Eba5d7650F157712C4fa4Ed42eBdD6E68CcF4';
-export const nodeFeeVault = '0x21f5E2522be4909ECecdB88Ed83181110A6633D9';
-export const vipFeeVault = '0x97693cEC8Eaf686D4353691Eb7A277F7F466B3F1';
+export const spaceToken = '0x7f83aA00EEDbFDab703C3465F543f6032881222a';
+export const usdtToken = '0x55d398326f99059fF775485246999027B3197955';
+export const nodeFeeVault = '0xa395DB71F5C9d61516D4bb29dc3669eDe2243272';
+export const vipFeeVault = '0x413c12179778b88525Ee89DF2E9Ca3335f60e658';
 
-
-//   deployer 0xF5000667E17Ca2208A653009306C02d7d94fD7d4
-//   signer 0x7789fFEA181d4Be54A1bCaA0F88D49907A3144b1
-//   marker 0xC4F470EDD4041F69d97c1476Cf0B7Ffb443C3A7B
-//   usdtToken 0x000Eba5d7650F157712C4fa4Ed42eBdD6E68CcF4
-//   spaceToken 0xb1CaE7D0f05413128eD9ac9e3c9cba7FCE865449
-//   vault 0xded94b734d583FD956Bc45443a2AB2a6ABfB3976
-//   nodeFeeVault 0x21f5E2522be4909ECecdB88Ed83181110A6633D9
-//   vipFeeVault 0x97693cEC8Eaf686D4353691Eb7A277F7F466B3F1
-//   mining 0x3FdA44c9766C9A1B6f1014e83e46c07F3A1694Ab
-//   tokenExchange 0xA49e216D846f0428dDBF35E69334d8242B3A9d6a
+//   deployer 0x066B7CbB21ff2EaB8925825Dd41F2464ee15C31c
+//   signer 0xE15cF0225eAfdA5aA7e59F6Ab96ad2F01917D83a
+//   marker 0x4e57Aa5803805E7afb0CDfBBDfd77AD342AA0B10
+//   usdtToken 0x55d398326f99059fF775485246999027B3197955
+//   spaceToken 0x7f83aA00EEDbFDab703C3465F543f6032881222a
+//   vault 0xB6ffBEb45Cf3628F570eB73c5df5C22Ce30570Ee
+//   nodeFeeVault 0xa395DB71F5C9d61516D4bb29dc3669eDe2243272
+//   vipFeeVault 0x413c12179778b88525Ee89DF2E9Ca3335f60e658
+//   mining 0x17D31806bD6D7a96bEBF242D26420D1F8405A74b
+//   tokenExchange 0x0a5304AB6e0857cBd75242C3eFdF0321A41C917B
