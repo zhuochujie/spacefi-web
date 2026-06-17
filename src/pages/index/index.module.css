@@ -5,7 +5,7 @@
 .top {
     width: 100%;
     height: 262px;
-    background-image: url(./images/bg.png);
+    background-image: url(./images/bg.webp);
     padding: 0 16px;
     background-size: 100% 100%;
     position: relative;
@@ -147,11 +147,11 @@
 }
 
 .activity .card:nth-child(1) {
-    background-image: url(./images/activity1.png);
+    background-image: url(./images/activity1.webp);
 }
 
 .activity .card:nth-child(2) {
-    background-image: url(./images/activity2.png);
+    background-image: url(./images/activity2.webp);
 }
 
 .activity .card span {

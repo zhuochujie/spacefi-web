@@ -29,11 +29,11 @@ import Modal from "../../components/modal"
 import LoadingLabel from "../../components/loading-label"
 import { getFriendlyErrorKey, useI18n } from "../../i18n"
 import styles from "./index.module.css"
-import Logo from './images/logo.png'
+import Logo from './images/logo.webp'
 import Arrow from './images/arrow.png'
-import Safety from './images/safety_bb.png'
-import Transparent from './images/transparent_bb.png'
-import Efficient from './images/efficient_bb.png'
+import Safety from './images/safety_bb.webp'
+import Transparent from './images/transparent_bb.webp'
+import Efficient from './images/efficient_bb.webp'
 
 function getApiErrorMessage(error: unknown, fallbackKey = '') {
     if (!(error instanceof Error) || !error.message) {
