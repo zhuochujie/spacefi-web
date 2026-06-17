@@ -2877,6 +2877,43 @@ export const mining = {
 //     abi: nodeAbi,
 // } as const;
 
+export const nodeAbi = [
+    {
+        type: 'function',
+        name: 'users',
+        inputs: [
+            {
+                name: '',
+                type: 'address',
+                internalType: 'address',
+            },
+        ],
+        outputs: [
+            {
+                name: 'activated',
+                type: 'bool',
+                internalType: 'bool',
+            },
+            {
+                name: 'levelIndex',
+                type: 'uint256',
+                internalType: 'uint256',
+            },
+            {
+                name: 'totalPaid',
+                type: 'uint256',
+                internalType: 'uint256',
+            },
+        ],
+        stateMutability: 'view',
+    },
+] as const satisfies Abi;
+
+export const node = {
+    address: '0x3fdbF4A7fa1d98086E9a716Ce5FabA3F0dE09327' as `0x${string}`,
+    abi: nodeAbi,
+} as const;
+
 export const spaceToken = '0x7f83aA00EEDbFDab703C3465F543f6032881222a';
 export const usdtToken = '0x55d398326f99059fF775485246999027B3197955';
 export const nodeFeeVault = '0xa395DB71F5C9d61516D4bb29dc3669eDe2243272';

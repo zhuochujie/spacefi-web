@@ -368,6 +368,13 @@ export function getProfile() {
     })
 }
 
+export function syncNodeLevel() {
+    return request<number>('/account/sync-node-level', {
+        method: 'POST',
+        auth: true,
+    })
+}
+
 export function getBalanceLogs(page = 1, pageSize = 20, types: BalanceLogType[] = [], token?: BalanceLogToken) {
     const params = new URLSearchParams({
         page: String(page),

@@ -9,6 +9,7 @@ import LoginMiner from './images/compressed-login_miner.png'
 import { getAccountExists, getNonce, login, register, setAccessToken, setLoginAddress } from "../../api"
 import Modal from "../../components/modal"
 import LoadingLabel from "../../components/loading-label"
+import { syncNodeLevelIfUpgraded } from "../../utils/node-level"
 
 const LANGUAGE_OPTIONS: AppLanguage[] = ['en', 'th', 'ko', 'zh']
 
@@ -96,6 +97,15 @@ function LoginPage() {
             queryClient.clear()
             setAccessToken(result.access_token)
             setLoginAddress(normalizedAddress)
+
+            try {
+                await syncNodeLevelIfUpgraded(normalizedAddress)
+                queryClient.invalidateQueries({ queryKey: ['profile'] })
+                queryClient.invalidateQueries({ queryKey: ['miner-payment-balances'] })
+            } catch {
+                // Node level sync should not block login when the RPC is temporarily unavailable.
+            }
+
             navigate(searchParams.get('redirect') || '/index')
         } catch (error) {
             setMessage(t(getFriendlyErrorKey(getErrorMessage(error), 'common.walletActionFailed')))
