@@ -1,11 +1,11 @@
 import PageHeader from "../../components/page-header"
 import { useI18n } from "../../i18n"
 import styles from "./index.module.css"
-import LogoImage from "../index/images/logo.webp"
-import HeroImage from "../index/images/bg.webp"
-import SafetyImage from "../index/images/safety_bb.webp"
-import EfficientImage from "../index/images/efficient_bb.webp"
-import TransparentImage from "../index/images/transparent_bb.webp"
+import LogoImage from "../../assets/images/logo.webp"
+import HeroImage from "../../assets/images/bg.webp"
+import SafetyImage from "../../assets/images/safety_bb.webp"
+import EfficientImage from "../../assets/images/efficient_bb.webp"
+import TransparentImage from "../../assets/images/transparent_bb.webp"
 
 const features = [
     {

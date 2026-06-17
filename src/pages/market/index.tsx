@@ -19,7 +19,7 @@ import { getApiErrorKey, getFriendlyErrorKey, useI18n } from "../../i18n"
 import { market, spaceToken, usdtToken } from "../../web3/constants"
 import { wagmiConfig } from "../../web3/config"
 import styles from "./index.module.css"
-import TopBG from './images/top_bg2.png'
+import TopBG from './images/top_bg2.webp'
 import AddIcon from './images/add.svg'
 import CopyIcon from './images/copy.svg'
 import DetailsIcon from './images/details.svg'

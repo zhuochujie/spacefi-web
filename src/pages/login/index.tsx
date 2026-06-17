@@ -4,8 +4,8 @@ import { useNavigate, useSearchParams } from "react-router"
 import { useConnection, useConnect, useConnectors, useSignMessage } from "wagmi"
 import { getFriendlyErrorKey, useI18n, type AppLanguage } from "../../i18n"
 import styles from "./index.module.css"
-import LoginLogo from './images/compressed-login_logo.png'
-import LoginMiner from './images/compressed-login_miner.png'
+import LoginLogo from './images/compressed-login_logo.webp'
+import LoginMiner from './images/compressed-login_miner.webp'
 import { getAccountExists, getNonce, login, register, setAccessToken, setLoginAddress } from "../../api"
 import Modal from "../../components/modal"
 import LoadingLabel from "../../components/loading-label"

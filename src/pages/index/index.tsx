@@ -29,11 +29,11 @@ import Modal from "../../components/modal"
 import LoadingLabel from "../../components/loading-label"
 import { getFriendlyErrorKey, useI18n } from "../../i18n"
 import styles from "./index.module.css"
-import Logo from './images/logo.webp'
-import Arrow from './images/arrow.png'
-import Safety from './images/safety_bb.webp'
-import Transparent from './images/transparent_bb.webp'
-import Efficient from './images/efficient_bb.webp'
+import Logo from '../../assets/images/logo.webp'
+import Arrow from './images/arrow.webp'
+import Safety from '../../assets/images/safety_bb.webp'
+import Transparent from '../../assets/images/transparent_bb.webp'
+import Efficient from '../../assets/images/efficient_bb.webp'
 
 function getApiErrorMessage(error: unknown, fallbackKey = '') {
     if (!(error instanceof Error) || !error.message) {
@@ -519,10 +519,10 @@ function IndexPage() {
                 {freeMinerClaimEnabled && (
                     <div className={styles.miner}>
                         <img
-                            src="/miners/SPACE_40.png"
+                            src="/miners/SPACE_40.webp"
                             alt={t('home.claimFreeMiner')}
                             onError={(event) => {
-                                event.currentTarget.src = '/miner1.png'
+                                event.currentTarget.src = '/miner1.webp'
                             }}
                         />
                         <div className={styles.info}>
@@ -562,10 +562,10 @@ function IndexPage() {
                 {miners.map((miner) => (
                     <div className={styles.miner} key={miner.id}>
                         <img
-                            src={`/miners/${miner.id}.png`}
+                            src={`/miners/${miner.id}.webp`}
                             alt={miner.name}
                             onError={(event) => {
-                                event.currentTarget.src = '/miner1.png'
+                                event.currentTarget.src = '/miner1.webp'
                             }}
                         />
                         <div className={styles.info}>

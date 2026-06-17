@@ -1,12 +1,12 @@
 import { useLocation, useNavigate } from "react-router";
-import IndexImage from './images/index.png'
-import IndexImageActive from './images/index-active.png'
-import MinerImage from './images/miner.png'
-import MinerImageActive from './images/miner-active.png'
-import MarketImage from './images/market.png'
-import MarketImageActive from './images/market-active.png'
-import PersonalImage from './images/personal.png'
-import PersonalImageActive from './images/personal-active.png'
+import IndexImage from './images/index.webp'
+import IndexImageActive from './images/index-active.webp'
+import MinerImage from './images/miner.webp'
+import MinerImageActive from './images/miner-active.webp'
+import MarketImage from './images/market.webp'
+import MarketImageActive from './images/market-active.webp'
+import PersonalImage from './images/personal.webp'
+import PersonalImageActive from './images/personal-active.webp'
 import { useI18n } from "../../i18n";
 
 import styles from "./index.module.css"

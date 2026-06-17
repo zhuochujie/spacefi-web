@@ -6,8 +6,8 @@ import { claimFreeMinerReward, getMyFreeMiner, getMyMiners, type FreeMiner, type
 import { formatBigintAmount } from "../../utils/format"
 import { getApiErrorKey, useI18n } from "../../i18n"
 import styles from "./index.module.css"
-import Accelerate from './images/accelerate.png'
-import Miner from './images/miner.png'
+import Accelerate from './images/accelerate.webp'
+import Miner from './images/miner.webp'
 import Arrow from './images/arrow.svg'
 import DetailsIcon from './images/details.svg'
 
@@ -246,7 +246,7 @@ function MinerPage() {
                     const cycleStartAt = miner.cycleEndAt - miner.cycle
                     const minerName = item.type === 'free' ? t('miner.freeMiner') : item.data.miner.name
                     const minerDesc = item.type === 'free' ? t('miner.freeMinerDesc') : t(item.data.miner.desc)
-                    const minerImage = item.type === 'free' ? '/miners/SPACE_40.png' : `/miners/${item.data.miner.id}.png`
+                    const minerImage = item.type === 'free' ? '/miners/SPACE_40.webp' : `/miners/${item.data.miner.id}.webp`
                     const claimableReward = item.type === 'free' ? BigInt(item.data.claimableReward ?? '0') : 0n
                     const progressStyle = {
                         '--progress': `${progress}%`,
@@ -258,7 +258,7 @@ function MinerPage() {
                                 src={minerImage}
                                 alt={minerName}
                                 onError={(event) => {
-                                    event.currentTarget.src = '/miner1.png'
+                                    event.currentTarget.src = '/miner1.webp'
                                 }}
                             />
                             <div className={styles.miner_info}>
