@@ -4,8 +4,6 @@ import { useNavigate, useSearchParams } from "react-router"
 import { useConnection, useConnect, useConnectors, useSignMessage } from "wagmi"
 import { getFriendlyErrorKey, useI18n, type AppLanguage } from "../../i18n"
 import styles from "./index.module.css"
-import LoginLogo from './images/compressed-login_logo.webp'
-import LoginMiner from './images/compressed-login_miner.webp'
 import { getAccountExists, getNonce, login, register, setAccessToken, setLoginAddress } from "../../api"
 import Modal from "../../components/modal"
 import LoadingLabel from "../../components/loading-label"
@@ -143,9 +141,9 @@ function LoginPage() {
                     </div>
                 )}
             </div>
-            <img className={styles.login_logo} src={LoginLogo} alt="Login logo" />
+            {/* <img className={styles.login_logo} src={LoginLogo} alt="Login logo" /> */}
             <div className={styles.bottom}>
-                <img className={styles.login_miner} src={LoginMiner} alt="Login miner" />
+                {/* <img className={styles.login_miner} src={LoginMiner} alt="Login miner" /> */}
                 <span>{t('login.title')}</span>
                 <div className={styles.liner}></div>
                 <div className={styles.desc}>{t('login.desc')}</div>

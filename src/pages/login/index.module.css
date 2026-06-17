@@ -1,11 +1,12 @@
 .con {
-    height: 100vh;
+    min-height: 100vh;
     width: 100vw;
-    background-color: #0a072e;
+    background-image: url(./images/login-bg.webp);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
+    justify-content: center;
 }
 
 .language_switch {
@@ -88,7 +89,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    margin-top: auto;
+    margin-bottom: 80px;
+    /* justify-content: space-between; */
 }
 
 .bottom > span {
