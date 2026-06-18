@@ -1,13 +1,11 @@
 import { useRef, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useNavigate, useSearchParams } from "react-router"
-import { useConnection, useConnect, useConnectors, useSignMessage } from "wagmi"
 import { getFriendlyErrorKey, useI18n, type AppLanguage } from "../../i18n"
 import styles from "./index.module.css"
 import { getAccountExists, getNonce, login, register, setAccessToken, setLoginAddress } from "../../api"
 import Modal from "../../components/modal"
 import LoadingLabel from "../../components/loading-label"
-import { syncNodeLevelIfUpgraded } from "../../utils/node-level"
 
 const LANGUAGE_OPTIONS: AppLanguage[] = ['en', 'th', 'ko', 'zh']
 
@@ -20,10 +18,6 @@ function LoginPage() {
     const { language, setLanguage, t } = useI18n()
     const queryClient = useQueryClient()
     const [searchParams] = useSearchParams()
-    const { address } = useConnection()
-    const connectors = useConnectors()
-    const { mutateAsync: connect } = useConnect()
-    const { mutateAsync: signWalletMessage } = useSignMessage()
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState('')
     const [refCodeInput, setRefCodeInput] = useState('')
@@ -51,16 +45,20 @@ function LoginPage() {
             setLoading(true)
             setMessage('')
 
-            let walletAddress = address
+            const [{ connect, getAccount, signMessage }, { wagmiConfig }] = await Promise.all([
+                import('@wagmi/core'),
+                import('../../web3/config'),
+            ])
+            let walletAddress = getAccount(wagmiConfig).address
 
             if (!walletAddress) {
-                const connector = connectors[0]
+                const connector = wagmiConfig.connectors[0]
 
                 if (!connector) {
                     throw new Error(t('login.walletConnectorNotFound'))
                 }
 
-                walletAddress = (await connect({ connector })).accounts[0]
+                walletAddress = (await connect(wagmiConfig, { connector })).accounts[0]
             }
 
             if (!walletAddress) {
@@ -87,7 +85,7 @@ function LoginPage() {
                 throw new Error(t('login.referralRequired'))
             }
 
-            const signature = await signWalletMessage({ message: walletMessage })
+            const signature = await signMessage(wagmiConfig, { message: walletMessage })
             const result = account.exists
                 ? await login(normalizedAddress, signature)
                 : await register(normalizedAddress, refCode, signature)
@@ -97,6 +95,7 @@ function LoginPage() {
             setLoginAddress(normalizedAddress)
 
             try {
+                const { syncNodeLevelIfUpgraded } = await import('../../utils/node-level')
                 await syncNodeLevelIfUpgraded(normalizedAddress)
                 queryClient.invalidateQueries({ queryKey: ['profile'] })
                 queryClient.invalidateQueries({ queryKey: ['miner-payment-balances'] })
