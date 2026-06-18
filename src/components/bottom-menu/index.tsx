@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import IndexImage from './images/index.webp'
 import IndexImageActive from './images/index-active.webp'
@@ -43,6 +44,13 @@ function BottomMenu() {
     const { t } = useI18n();
     const { pathname } = useLocation();
     const showMenu = menus.some((item) => item.path === pathname);
+
+    useEffect(() => {
+        menus.flatMap((item) => [item.icon, item.activeIcon]).forEach((src) => {
+            const image = new Image();
+            image.src = src;
+        });
+    }, []);
 
     if (!showMenu) {
         return null;
