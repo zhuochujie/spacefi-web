@@ -10,6 +10,7 @@ type ModalProps = {
     cancelText?: string
     confirmDisabled?: boolean
     confirmLoading?: boolean
+    showCancel?: boolean
     children: ReactNode
     onConfirm: () => void
     onCancel: () => void
@@ -22,6 +23,7 @@ function Modal({
     cancelText = 'common.cancel',
     confirmDisabled = false,
     confirmLoading = false,
+    showCancel = true,
     children,
     onConfirm,
     onCancel,
@@ -38,7 +40,7 @@ function Modal({
                 <div className={styles.title}>{t(title)}</div>
                 <div className={styles.content}>{children}</div>
                 <div className={styles.actions}>
-                    <button className={styles.cancel} onClick={onCancel}>{t(cancelText)}</button>
+                    {showCancel && <button className={styles.cancel} onClick={onCancel}>{t(cancelText)}</button>}
                     <button className={styles.confirm} disabled={confirmDisabled} onClick={onConfirm}>
                         {confirmLoading ? <LoadingLabel text={t(confirmText)} /> : t(confirmText)}
                     </button>

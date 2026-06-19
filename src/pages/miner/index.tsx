@@ -258,7 +258,7 @@ function MinerPage() {
                                 src={minerImage}
                                 alt={minerName}
                                 onError={(event) => {
-                                    event.currentTarget.src = '/miner1.webp'
+                                    event.currentTarget.src = '/miners/SPACE_100.webp'
                                 }}
                             />
                             <div className={styles.miner_info}>

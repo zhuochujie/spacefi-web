@@ -1,7 +1,9 @@
+import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import copy from "copy-to-clipboard"
 import { toast } from "react-hot-toast"
-import { getCommissionLevel, getProfile, getTeam } from "../../api"
+import { getCommissionLevel, getProfile, getTeam, type TeamMember } from "../../api"
+import Modal from "../../components/modal"
 import PageHeader from "../../components/page-header"
 import { formatBigintAmount } from "../../utils/format"
 import { getApiErrorKey, useI18n } from "../../i18n"
@@ -26,6 +28,7 @@ function formatTime(timestamp: number) {
 
 function TeamPage() {
     const { t } = useI18n()
+    const [minerMember, setMinerMember] = useState<TeamMember | null>(null)
     const {
         data,
         isLoading: loading,
@@ -110,10 +113,17 @@ function TeamPage() {
                         </div>
                         <div className={styles.member_grid}>
                             <div>
-                                <span>{t('team.refCode')}</span>
-                                <button type="button" onClick={() => handleCopy(member.refCode, 'team.refCode')}>
-                                    {member.refCode}
-                                </button>
+                                <span>{t('team.miners')}</span>
+                                <div className={styles.miner_count_value}>
+                                    <strong>{member.miners?.length ?? 0}</strong>
+                                    <button
+                                        type="button"
+                                        disabled={!member.miners?.length}
+                                        onClick={() => setMinerMember(member)}
+                                    >
+                                        {t('team.details')}
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <span>{t('team.branchPerformance')}</span>
@@ -123,6 +133,30 @@ function TeamPage() {
                     </div>
                 ))}
             </div>
+
+            <Modal
+                open={Boolean(minerMember)}
+                title="team.minerDetails"
+                confirmText="team.close"
+                showCancel={false}
+                onCancel={() => setMinerMember(null)}
+                onConfirm={() => setMinerMember(null)}
+            >
+                <div className={styles.miner_list}>
+                    {(minerMember?.miners ?? []).map((miner) => (
+                        <div className={styles.miner_item} key={`${miner.type}-${miner.id}`}>
+                            <img
+                                src={`/miners/${miner.minerId}.webp`}
+                                alt={miner.name}
+                                onError={(event) => {
+                                    event.currentTarget.src = '/miners/SPACE_100.webp'
+                                }}
+                            />
+                            <strong>{miner.name}</strong>
+                        </div>
+                    ))}
+                </div>
+            </Modal>
         </div>
     )
 }

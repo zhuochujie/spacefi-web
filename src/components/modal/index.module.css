@@ -13,7 +13,10 @@
 .modal {
     width: 100%;
     max-width: 315px;
+    max-height: calc(100vh - 48px);
     padding: 20px 16px 16px;
+    display: flex;
+    flex-direction: column;
     background: #071531;
     border: 1px solid #1E3964;
     border-radius: 8px;
@@ -29,11 +32,14 @@
 }
 
 .content {
+    min-height: 0;
     margin-bottom: 18px;
+    overflow-y: auto;
 }
 
 .actions {
     display: flex;
+    flex-shrink: 0;
     gap: 10px;
 }
 

@@ -212,3 +212,52 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.miner_count_value {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.member_grid .miner_count_value button {
+    color: #58AFFF;
+    text-align: right;
+}
+
+.member_grid .miner_count_value button:disabled {
+    color: #5A6886;
+}
+
+.miner_list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.miner_item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 72px;
+    padding: 6px 2px;
+}
+
+.miner_item + .miner_item {
+    border-top: 1px solid rgba(30, 57, 100, 0.72);
+}
+
+.miner_item img {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    object-fit: contain;
+}
+
+.miner_item strong {
+    min-width: 0;
+    color: #F1F2F4;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}

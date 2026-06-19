@@ -113,6 +113,19 @@ export type TeamMember = {
     vipLevel: number
     performance: string
     createdAt: number
+    miners: TeamMemberMiner[]
+}
+
+export type TeamMemberMiner = {
+    id: number
+    type: 'miner' | 'free'
+    minerId: string
+    name: string
+    expectedReward: string
+    producedReward: string
+    cycle: number
+    cycleEndAt: number
+    createdAt: number
 }
 
 export type TeamData = {

@@ -279,6 +279,10 @@ const zh = {
         address: '地址',
         refCode: '推荐码',
         branchPerformance: '分支业绩',
+        miners: '矿机 (台)',
+        details: '详情',
+        minerDetails: '矿机列表',
+        close: '关闭',
     },
     about: {
         secureTitle: '安全透明',
@@ -626,6 +630,10 @@ const en = {
         address: 'Address',
         refCode: 'Referral Code',
         branchPerformance: 'Branch',
+        miners: 'Miners',
+        details: 'Details',
+        minerDetails: 'Miner List',
+        close: 'Close',
     },
     about: {
         secureTitle: 'Safe',
@@ -973,6 +981,10 @@ const th = {
         address: 'ที่อยู่',
         refCode: 'รหัสเชิญ',
         branchPerformance: 'ผลงานสาย',
+        miners: 'เครื่องขุด',
+        details: 'รายละเอียด',
+        minerDetails: 'รายการเครื่องขุด',
+        close: 'ปิด',
     },
     about: {
         secureTitle: 'ปลอดภัย',
@@ -1320,6 +1332,10 @@ const ko = {
         address: '주소',
         refCode: '추천 코드',
         branchPerformance: '라인 실적',
+        miners: '채굴기 (대)',
+        details: '상세',
+        minerDetails: '채굴기 목록',
+        close: '닫기',
     },
     about: {
         secureTitle: '안전·투명',

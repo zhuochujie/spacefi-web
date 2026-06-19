@@ -522,7 +522,7 @@ function IndexPage() {
                             src="/miners/SPACE_40.webp"
                             alt={t('home.claimFreeMiner')}
                             onError={(event) => {
-                                event.currentTarget.src = '/miner1.webp'
+                                event.currentTarget.src = '/miners/SPACE_100.webp'
                             }}
                         />
                         <div className={styles.info}>
@@ -565,7 +565,7 @@ function IndexPage() {
                             src={`/miners/${miner.id}.webp`}
                             alt={miner.name}
                             onError={(event) => {
-                                event.currentTarget.src = '/miner1.webp'
+                                event.currentTarget.src = '/miners/SPACE_100.webp'
                             }}
                         />
                         <div className={styles.info}>
