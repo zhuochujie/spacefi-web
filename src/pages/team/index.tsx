@@ -84,15 +84,17 @@ function TeamPage() {
                 {t('team.commissionLevel', { level: commissionLevel?.commissionLevel ?? 0 })}
             </div>
 
-            <div className={styles.invite_card}>
-                <div>
-                    <span>{t('team.referralLink')}</span>
-                    <strong>{inviteLink || '--'}</strong>
+            {profile?.hasPurchasedMiner && (
+                <div className={styles.invite_card}>
+                    <div>
+                        <span>{t('team.referralLink')}</span>
+                        <strong>{inviteLink || '--'}</strong>
+                    </div>
+                    <button type="button" disabled={!inviteLink} onClick={() => handleCopy(inviteLink, 'team.referralLink')}>
+                        {t('team.copy')}
+                    </button>
                 </div>
-                <button type="button" disabled={!inviteLink} onClick={() => handleCopy(inviteLink, 'team.referralLink')}>
-                    {t('team.copy')}
-                </button>
-            </div>
+            )}
 
             <div className={styles.section_title}>{t('team.directMembers')}</div>
 
