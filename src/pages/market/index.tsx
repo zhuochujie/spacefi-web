@@ -462,7 +462,7 @@ function MarketPage() {
         <div>
             <div className={styles.top}>
                 <div className={styles.text_con}>
-                    <span>{t('nav.miner')}</span>
+                    <span>{t('nav.market')}</span>
                     <span>{t('market.use')} <span className={styles.usdt}>USDT</span> {t('market.trade')} <span className={styles.space}>SPACE</span></span>
                     <div>
                         <div></div>
