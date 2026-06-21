@@ -12,7 +12,7 @@ import Modal from "../../components/modal"
 import { getFriendlyErrorKey, useI18n } from "../../i18n"
 import { formatBigintAmount } from "../../utils/format"
 import { mining } from "../../web3/constants"
-import { wagmiConfig } from "../../web3/config"
+import { appChainId, wagmiConfig } from "../../web3/config"
 import styles from "./index.module.css"
 import SpaceIcon from "./images/token2.svg"
 import UsdtIcon from "./images/USDT.svg"
@@ -162,6 +162,7 @@ function PersonalPage() {
                 ? await withdraw(withdrawAmountWei.toString())
                 : await withdrawUsdt(withdrawAmountWei.toString())
             const hash = await writeContract({
+                chainId: appChainId,
                 address: mining.address,
                 abi: mining.abi,
                 functionName: withdrawToken === 'SPACE' ? 'claim' : 'withdrawUsdt',

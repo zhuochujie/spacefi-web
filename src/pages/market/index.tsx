@@ -17,7 +17,7 @@ import { formatBigintAmount } from "../../utils/format"
 import { waitForMarketOrderTransaction, waitForMarketTradeTransaction } from "../../utils/market"
 import { getApiErrorKey, getFriendlyErrorKey, useI18n } from "../../i18n"
 import { market, spaceToken, usdtToken } from "../../web3/constants"
-import { wagmiConfig } from "../../web3/config"
+import { appChainId, wagmiConfig } from "../../web3/config"
 import styles from "./index.module.css"
 import TopBG from './images/top_bg2.webp'
 import AddIcon from './images/add.svg'
@@ -369,6 +369,7 @@ function MarketPage() {
 
             if (allowance < approveAmount) {
                 const approveHash = await writeContract({
+                    chainId: appChainId,
                     address: tokenAddress as Address,
                     abi: erc20Abi,
                     functionName: 'approve',
@@ -381,6 +382,7 @@ function MarketPage() {
             }
             
             const hash = await writeContract({
+                chainId: appChainId,
                 address: market.address,
                 abi: market.abi,
                 functionName: 'fillOrder',
@@ -426,6 +428,7 @@ function MarketPage() {
 
             if (allowance < approveAmount) {
                 const approveHash = await writeContract({
+                    chainId: appChainId,
                     address: tokenAddress as Address,
                     abi: erc20Abi,
                     functionName: 'approve',
@@ -437,6 +440,7 @@ function MarketPage() {
                 })
             }
             const hash = await writeContract({
+                chainId: appChainId,
                 address: market.address,
                 abi: market.abi,
                 functionName: publishMode === 'buy' ? 'placeBuyOrder' : 'placeSellOrder',

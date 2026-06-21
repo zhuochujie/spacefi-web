@@ -24,7 +24,7 @@ import { formatBigintAmount } from "../../utils/format"
 import { waitForFreeMinerHash, waitForMinerNonceUsed } from "../../utils/miner"
 import { getLocalizedNotice } from "../../utils/notice"
 import { market, mining, spaceToken, usdtToken } from "../../web3/constants"
-import { wagmiConfig } from "../../web3/config"
+import { appChainId, wagmiConfig } from "../../web3/config"
 import Modal from "../../components/modal"
 import LoadingLabel from "../../components/loading-label"
 import { getFriendlyErrorKey, useI18n } from "../../i18n"
@@ -330,6 +330,7 @@ function IndexPage() {
 
                 if (allowance < payValue) {
                     const approveHash = await writeContract({
+                        chainId: appChainId,
                         address: paymentTokenAddress as Address,
                         abi: erc20Abi,
                         functionName: 'approve',
@@ -343,6 +344,7 @@ function IndexPage() {
             }
 
             const hash = await writeContract({
+                chainId: appChainId,
                 address: mining.address,
                 abi: mining.abi,
                 functionName: 'purchaseMiner',
@@ -409,6 +411,7 @@ function IndexPage() {
 
             const claim = await claimFeeExempt()
             const hash = await writeContract({
+                chainId: appChainId,
                 address: market.address,
                 abi: market.abi,
                 functionName: 'setFeeExempt',
@@ -445,6 +448,7 @@ function IndexPage() {
 
             setClaimingFreeMiner(true)
             const hash = await writeContract({
+                chainId: appChainId,
                 address: mining.address,
                 abi: mining.abi,
                 functionName: 'claimFreeMiner',

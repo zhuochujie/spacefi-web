@@ -18,7 +18,7 @@ import { formatBigintAmount } from "../../utils/format"
 import { waitForMarketOrderStatus } from "../../utils/market"
 import { getApiErrorKey, getFriendlyErrorKey, useI18n } from "../../i18n"
 import { market } from "../../web3/constants"
-import { wagmiConfig } from "../../web3/config"
+import { appChainId, wagmiConfig } from "../../web3/config"
 import LoadingLabel from "../../components/loading-label"
 import styles from "./index.module.css"
 
@@ -111,6 +111,7 @@ function MarketOrdersPage() {
         try {
             setCancellingOrderId(order.id)
             const hash = await writeContract({
+                chainId: appChainId,
                 address: market.address,
                 abi: market.abi,
                 functionName: 'cancelOrder',

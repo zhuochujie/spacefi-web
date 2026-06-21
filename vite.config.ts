@@ -1,11 +1,13 @@
 import { defineConfig } from 'vite'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
+import basicSsl from '@vitejs/plugin-basic-ssl'
 import babel from '@rolldown/plugin-babel'
 import postcsspxtoviewport8plugin from 'postcss-px-to-viewport-8-plugin';
 
 // https://vite.dev/config/
 export default defineConfig({
   server: {
+    host: true,
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:3000',
@@ -20,6 +22,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    basicSsl({ name: 'spacefi-dev' }),
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],

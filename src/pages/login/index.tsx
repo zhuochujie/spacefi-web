@@ -45,7 +45,7 @@ function LoginPage() {
             setLoading(true)
             setMessage('')
 
-            const [{ connect, getAccount, signMessage }, { wagmiConfig }] = await Promise.all([
+            const [{ connect, getAccount, signMessage }, { appChainId, ensureAppChain, wagmiConfig }] = await Promise.all([
                 import('@wagmi/core'),
                 import('../../web3/config'),
             ])
@@ -58,12 +58,17 @@ function LoginPage() {
                     throw new Error(t('login.walletConnectorNotFound'))
                 }
 
-                walletAddress = (await connect(wagmiConfig, { connector })).accounts[0]
+                walletAddress = (await connect(wagmiConfig, {
+                    connector,
+                    chainId: appChainId,
+                })).accounts[0]
             }
 
             if (!walletAddress) {
                 throw new Error(t('login.walletAddressNotFound'))
             }
+
+            await ensureAppChain(getAccount(wagmiConfig))
 
             const normalizedAddress = walletAddress.toLowerCase()
             const account = await getAccountExists(normalizedAddress)
