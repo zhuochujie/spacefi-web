@@ -35,6 +35,9 @@ import Safety from '../../assets/images/safety_bb.webp'
 import Transparent from '../../assets/images/transparent_bb.webp'
 import Efficient from '../../assets/images/efficient_bb.webp'
 
+const NOTICE_SCROLL_SPEED_PX_PER_SECOND = 20
+const MIN_NOTICE_SCROLL_DURATION_SECONDS = 20
+
 function getApiErrorMessage(error: unknown, fallbackKey = '') {
     if (!(error instanceof Error) || !error.message) {
         return fallbackKey
@@ -199,6 +202,9 @@ function IndexPage() {
 
         if (noticeViewportRef.current) {
             observer.observe(noticeViewportRef.current)
+        }
+        if (noticeTextRef.current) {
+            observer.observe(noticeTextRef.current)
         }
 
         window.addEventListener('resize', updateNoticeAnimation)
@@ -473,8 +479,13 @@ function IndexPage() {
         }
     }
 
+    const noticeDuration = Math.max(
+        MIN_NOTICE_SCROLL_DURATION_SECONDS,
+        noticeDistance / NOTICE_SCROLL_SPEED_PX_PER_SECOND,
+    )
     const noticeTrackStyle = {
         '--notice-distance': `${noticeDistance}px`,
+        '--notice-duration': `${noticeDuration}s`,
     } as CSSProperties
 
     return (
