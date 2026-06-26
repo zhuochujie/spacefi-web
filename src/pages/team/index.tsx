@@ -84,7 +84,7 @@ function TeamPage() {
                 {t('team.commissionLevel', { level: commissionLevel?.commissionLevel ?? 0 })}
             </div>
 
-            {profile?.hasPurchasedMiner && (
+            {profile?.canInvite && (
                 <div className={styles.invite_card}>
                     <div>
                         <span>{t('team.referralLink')}</span>

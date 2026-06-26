@@ -79,7 +79,7 @@ export type Profile = {
     nodeLevel: number
     balance: string
     usdtBalance: string
-    hasPurchasedMiner: boolean
+    canInvite: boolean
     createdAt: number
 }
 
